@@ -32,25 +32,11 @@ for sub in s.split(3, step=2):
         print(~kmer)  # '~' also works on k-mers
 ```
 
-## Install
-
-### Pre-built binaries
-
-Pre-built binaries for Linux and macOS on x86_64 are available alongside [each release](https://github.com/seq-lang/seq/releases). We also have a script for downloading and installing pre-built versions:
-
-```bash
-/bin/bash -c "$(curl -fsSL https://seq-lang.org/install.sh)"
-```
-
-### Build from source
-
-See [Building from Source](docs/sphinx/build.rst).
-
-# Documentation
+## Documentation
 
 Please check [docs.seq-lang.org](https://docs.seq-lang.org) for in-depth documentation.
 
-# Citing Seq
+## Citing Seq
 
 If you use Seq in your research, please cite:
 
