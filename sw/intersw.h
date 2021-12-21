@@ -2,6 +2,26 @@
 // https://github.com/bwa-mem2/bwa-mem2/blob/master/src/bandedSWA.cpp
 #pragma once
 
+#include "ksw2.h"
+#include <cassert>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+
+#define INTERSW_LEN_LIMIT 512
+
+struct SeqPair {
+  int32_t id;
+  int32_t len1, len2;
+  int32_t score;
+  uint32_t *cigar;
+  int32_t n_cigar;
+  int32_t flags;
+};
+
+#if defined(__x86_64__) || defined(_M_X64)
+
 #ifndef __has_attribute
 #define __has_attribute(x) 0
 #endif
@@ -12,12 +32,6 @@
 #define ALWAYS_INLINE inline
 #endif
 
-#include "ksw2.h"
-#include <cassert>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include <immintrin.h>
 
 extern "C" void *seq_alloc_atomic(size_t n);
@@ -30,15 +44,6 @@ void pv(const char *tag, __m256i var) {
          val[2], val[3], val[4], val[5], val[6], val[7], val[8], val[9], val[10],
          val[11], val[12], val[13], val[14], val[15]);
 }
-
-struct SeqPair {
-  int32_t id;
-  int32_t len1, len2;
-  int32_t score;
-  uint32_t *cigar;
-  int32_t n_cigar;
-  int32_t flags;
-};
 
 #define min_(x, y) ((x) > (y) ? (y) : (x))
 #define max_(x, y) ((x) > (y) ? (x) : (y))
@@ -596,7 +601,7 @@ template <> struct SIMD<512, 16> {
 
 template <unsigned W, unsigned N, bool CIGAR = false> class InterSW {
 public:
-  static constexpr size_t LEN_LIMIT = 512;
+  static constexpr size_t LEN_LIMIT = INTERSW_LEN_LIMIT;
   using int_t = typename SIMD<W, N>::int_t;
   using uint_t = typename SIMD<W, N>::uint_t;
 
@@ -1462,3 +1467,5 @@ void InterSW<W, N, CIGAR>::SWBacktrace(bool is_rot, bool is_rev, int min_intron_
       tmp = cigar[i], cigar[i] = cigar[n_cigar - 1 - i], cigar[n_cigar - 1 - i] = tmp;
   *m_cigar_ = m_cigar, *n_cigar_ = n_cigar, *cigar_ = cigar;
 }
+
+#endif

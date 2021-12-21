@@ -3,6 +3,55 @@
 #include "seq.h"
 #include <cstdlib>
 
+struct InterAlignParams { // must be consistent with bio/align.seq
+  int8_t a;
+  int8_t b;
+  int8_t ambig;
+  int8_t gapo;
+  int8_t gape;
+  int8_t score_only;
+  int32_t bandwidth;
+  int32_t zdrop;
+  int32_t end_bonus;
+};
+
+static seq_t make_str(const char *s) {
+  seq_int_t n = strlen(s);
+  char *p = (char *)seq_alloc_atomic(n);
+  memcpy(p, s, n);
+  return {n, p};
+}
+
+SEQ_FUNC void seq_inter_align1(InterAlignParams *paramsx, SeqPair *seqPairArray,
+                               uint8_t *seqBufRef, uint8_t *seqBufQer, int numPairs) {
+#ifdef __SSE2__
+  InterAlignParams params = *paramsx;
+  int8_t a = params.a > 0 ? params.a : -params.a;
+  int8_t b = params.b > 0 ? -params.b : params.b;
+  int8_t ambig = params.ambig > 0 ? -params.ambig : params.ambig;
+  int8_t mat[] = {a, b,     b, b, ambig, b, a,     b,     b,     ambig, b,     b,    a,
+                  b, ambig, b, b, b,     a, ambig, ambig, ambig, ambig, ambig, ambig};
+  ksw_extz_t ez;
+  int flags = params.score_only ? KSW_EZ_SCORE_ONLY : 0;
+  for (int i = 0; i < numPairs; i++) {
+    SeqPair *sp = &seqPairArray[i];
+    int myflags = flags | sp->flags;
+    ksw_reset_extz(&ez);
+    ksw_extz2_sse(nullptr, sp->len2, seqBufQer + INTERSW_LEN_LIMIT * sp->id, sp->len1,
+                  seqBufRef + INTERSW_LEN_LIMIT * sp->id, /*m=*/5, mat, params.gapo,
+                  params.gape, params.bandwidth, params.zdrop, params.end_bonus,
+                  myflags, &ez);
+    sp->score = (myflags & KSW_EZ_EXTZ_ONLY) ? ez.max : ez.score;
+    sp->cigar = ez.cigar;
+    sp->n_cigar = ez.n_cigar;
+  }
+#else
+  abort();
+#endif
+}
+
+#if defined(__x86_64__) || defined(_M_X64)
+
 // adapted from minimap2's KSW2 dispatch
 // https://github.com/lh3/minimap2/blob/master/ksw2_dispatch.c
 #define SIMD_SSE 0x1
@@ -66,13 +115,6 @@ static int x86_simd() {
   return flag;
 }
 
-static seq_t make_str(const char *s) {
-  seq_int_t n = strlen(s);
-  char *p = (char *)seq_alloc_atomic(n);
-  memcpy(p, s, n);
-  return {n, p};
-}
-
 SEQ_FUNC seq_t seq_get_interaln_simd() {
   if (intersw_simd < 0)
     intersw_simd = x86_simd();
@@ -91,18 +133,6 @@ SEQ_FUNC void seq_set_sw_maxsimd(int max) {
   SEQ_MAXSIMD = (max << 1) - 1;
   intersw_simd = x86_simd();
 }
-
-struct InterAlignParams { // must be consistent with bio/align.seq
-  int8_t a;
-  int8_t b;
-  int8_t ambig;
-  int8_t gapo;
-  int8_t gape;
-  int8_t score_only;
-  int32_t bandwidth;
-  int32_t zdrop;
-  int32_t end_bonus;
-};
 
 template <typename SW8, typename SWbt8>
 static inline void seq_inter_align128_generic(InterAlignParams *paramsx,
@@ -140,31 +170,6 @@ static inline void seq_inter_align16_generic(InterAlignParams *paramsx,
     SWbt16 bsw(params.gapo, params.gape, params.gapo, params.gape, zdrop,
                params.end_bonus, params.a, params.b, params.ambig);
     bsw.SW(seqPairArray, seqBufRef, seqBufQer, numPairs, bandwidth);
-  }
-}
-
-SEQ_FUNC void seq_inter_align1(InterAlignParams *paramsx, SeqPair *seqPairArray,
-                               uint8_t *seqBufRef, uint8_t *seqBufQer, int numPairs) {
-  typedef InterSW<128, 8, /*CIGAR=*/false> SW8;
-  InterAlignParams params = *paramsx;
-  int8_t a = params.a > 0 ? params.a : -params.a;
-  int8_t b = params.b > 0 ? -params.b : params.b;
-  int8_t ambig = params.ambig > 0 ? -params.ambig : params.ambig;
-  int8_t mat[] = {a, b,     b, b, ambig, b, a,     b,     b,     ambig, b,     b,    a,
-                  b, ambig, b, b, b,     a, ambig, ambig, ambig, ambig, ambig, ambig};
-  ksw_extz_t ez;
-  int flags = params.score_only ? KSW_EZ_SCORE_ONLY : 0;
-  for (int i = 0; i < numPairs; i++) {
-    SeqPair *sp = &seqPairArray[i];
-    int myflags = flags | sp->flags;
-    ksw_reset_extz(&ez);
-    ksw_extz2_sse(nullptr, sp->len2, seqBufQer + SW8::LEN_LIMIT * sp->id, sp->len1,
-                  seqBufRef + SW8::LEN_LIMIT * sp->id, /*m=*/5, mat, params.gapo,
-                  params.gape, params.bandwidth, params.zdrop, params.end_bonus,
-                  myflags, &ez);
-    sp->score = (myflags & KSW_EZ_EXTZ_ONLY) ? ez.max : ez.score;
-    sp->cigar = ez.cigar;
-    sp->n_cigar = ez.n_cigar;
   }
 }
 
@@ -255,3 +260,25 @@ SEQ_FUNC void seq_inter_align16(InterAlignParams *paramsx, SeqPair *seqPairArray
     seq_inter_align16_scalar(paramsx, seqPairArray, seqBufRef, seqBufQer, numPairs);
   }
 }
+
+#else
+
+// non-x86; include stubs
+
+SEQ_FUNC seq_t seq_get_interaln_simd() { return make_str("NONE"); }
+
+SEQ_FUNC void seq_set_sw_maxsimd(int max) {
+  // nothing to do
+}
+
+SEQ_FUNC void seq_inter_align16(InterAlignParams *paramsx, SeqPair *seqPairArray,
+                                uint8_t *seqBufRef, uint8_t *seqBufQer, int numPairs) {
+  seq_inter_align1(paramsx, seqPairArray, seqBufRef, seqBufQer, numPairs);
+}
+
+SEQ_FUNC void seq_inter_align128(InterAlignParams *paramsx, SeqPair *seqPairArray,
+                                 uint8_t *seqBufRef, uint8_t *seqBufQer, int numPairs) {
+  seq_inter_align1(paramsx, seqPairArray, seqBufRef, seqBufQer, numPairs);
+}
+
+#endif
