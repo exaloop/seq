@@ -81,7 +81,7 @@ Value *replaceStageFunc(PipelineFlow::Stage &stage, Func *schedFunc,
       return clone;
     }
   }
-  seqassert(0, "invalid stage func replacement");
+  seqassertn(0, "invalid stage func replacement");
   return nullptr;
 }
 } // namespace
@@ -111,9 +111,9 @@ void PipelineSubstitutionOptimization::handle(PipelineFlow *p) {
           auto *kmerType = genType->getBase();
           auto *kmersRevcompFunc = M->getOrRealizeFunc(
               "_kmers_revcomp", {seqType, M->getIntType()}, {kmerType}, builtinModule);
-          seqassert(kmersRevcompFunc &&
-                        util::getReturnType(kmersRevcompFunc)->is(genType),
-                    "invalid reverse complement function");
+          seqassertn(kmersRevcompFunc &&
+                         util::getReturnType(kmersRevcompFunc)->is(genType),
+                     "invalid reverse complement function");
           cast<VarValue>(prev->getCallee())->setVar(kmersRevcompFunc);
           if (it->isParallel())
             prev->setParallel();
@@ -134,9 +134,9 @@ void PipelineSubstitutionOptimization::handle(PipelineFlow *p) {
           auto *kmersRevcompWithPosFunc =
               M->getOrRealizeFunc("_kmers_revcomp_with_pos", {seqType, M->getIntType()},
                                   {kmerType}, builtinModule);
-          seqassert(kmersRevcompWithPosFunc &&
-                        util::getReturnType(kmersRevcompWithPosFunc)->is(genType),
-                    "invalid pos reverse complement function");
+          seqassertn(kmersRevcompWithPosFunc &&
+                         util::getReturnType(kmersRevcompWithPosFunc)->is(genType),
+                     "invalid pos reverse complement function");
           cast<VarValue>(prev->getCallee())->setVar(kmersRevcompWithPosFunc);
           if (it->isParallel())
             prev->setParallel();
@@ -155,9 +155,9 @@ void PipelineSubstitutionOptimization::handle(PipelineFlow *p) {
           auto *kmerType = genType->getBase();
           auto *kmersCanonicalFunc = M->getOrRealizeFunc("_kmers_canonical", {seqType},
                                                          {kmerType}, builtinModule);
-          seqassert(kmersCanonicalFunc &&
-                        util::getReturnType(kmersCanonicalFunc)->is(genType),
-                    "invalid canonical kmers function");
+          seqassertn(kmersCanonicalFunc &&
+                         util::getReturnType(kmersCanonicalFunc)->is(genType),
+                     "invalid canonical kmers function");
           cast<VarValue>(prev->getCallee())->setVar(kmersCanonicalFunc);
           prev->erase(prev->end() - 1); // remove step argument
           if (it->isParallel())
@@ -178,9 +178,9 @@ void PipelineSubstitutionOptimization::handle(PipelineFlow *p) {
               cast<types::MemberedType>(genType->getBase())->back().getType();
           auto *kmersCanonicalWithPosFunc = M->getOrRealizeFunc(
               "_kmers_canonical_with_pos", {seqType}, {kmerType}, builtinModule);
-          seqassert(kmersCanonicalWithPosFunc &&
-                        util::getReturnType(kmersCanonicalWithPosFunc)->is(genType),
-                    "invalid pos canonical kmers function");
+          seqassertn(kmersCanonicalWithPosFunc &&
+                         util::getReturnType(kmersCanonicalWithPosFunc)->is(genType),
+                     "invalid pos canonical kmers function");
           cast<VarValue>(prev->getCallee())->setVar(kmersCanonicalWithPosFunc);
           prev->erase(prev->end() - 1); // remove step argument
           if (it->isParallel())
@@ -242,6 +242,8 @@ void PipelinePrefetchOptimization::handle(PipelineFlow *p) {
   for (auto it = p->begin(); it != p->end(); ++it) {
     if (auto *func = getStageFunc(*it)) {
       if (!it->isGenerator() && util::hasAttribute(func, "std.bio.builtin.prefetch")) {
+        LOG_USER("applying prefetch on {}", func->getName());
+
         // transform prefetch'ing function
         auto *clone = cast<BodiedFunc>(cv.forceClone(func));
         util::setReturnType(clone, M->getGeneratorType(util::getReturnType(clone)));
@@ -255,13 +257,13 @@ void PipelinePrefetchOptimization::handle(PipelineFlow *p) {
 
         // vars
         auto *statesType = M->getArrayType(coroType->getReturnType());
-        seqassert((SCHED_WIDTH_PREFETCH & (SCHED_WIDTH_PREFETCH - 1)) == 0,
-                  "not a power of 2"); // power of 2
+        seqassertn((SCHED_WIDTH_PREFETCH & (SCHED_WIDTH_PREFETCH - 1)) == 0,
+                   "not a power of 2"); // power of 2
         auto *width = M->getInt(SCHED_WIDTH_PREFETCH);
 
         auto *init = M->Nr<SeriesFlow>();
         auto *parent = cast<BodiedFunc>(getParentFunc());
-        seqassert(parent, "not in a function");
+        seqassertn(parent, "not in a function");
         auto *filled = util::makeVar(M->getInt(0), init, parent);
         auto *next = util::makeVar(M->getInt(0), init, parent);
         auto *states = util::makeVar(
@@ -287,7 +289,7 @@ void PipelinePrefetchOptimization::handle(PipelineFlow *p) {
 
         Func *schedFunc = M->getOrRealizeFunc("_dynamic_coroutine_scheduler", argTypes,
                                               {}, prefetchModule);
-        seqassert(schedFunc, "could not realize scheduler function");
+        seqassertn(schedFunc, "could not realize scheduler function");
         PipelineFlow::Stage stage(replaceStageFunc(*it, schedFunc, cv),
                                   {nullptr, M->Nr<VarValue>(clone), states,
                                    M->Nr<PointerValue>(next->getVar()),
@@ -306,11 +308,11 @@ void PipelinePrefetchOptimization::handle(PipelineFlow *p) {
         *it = stage;
 
         if (std::distance(it, p->end()) == 1 &&
-            !util::getReturnType(func)->is(M->getVoidType())) {
+            !util::getReturnType(func)->is(M->getNoneType())) {
           Func *dummyFunc =
               M->getOrRealizeFunc("_dummy_prefetch_terminal_stage",
                                   {stage.getOutputElementType()}, {}, prefetchModule);
-          seqassert(dummyFunc, "could not realize dummy prefetch");
+          seqassertn(dummyFunc, "could not realize dummy prefetch");
           p->push_back({M->Nr<VarValue>(dummyFunc),
                         {nullptr},
                         /*generator=*/false,
@@ -432,7 +434,7 @@ template <typename T> bool verifyAlignParams(T begin, T end) {
         return false;
       break;
     default:
-      seqassert(0, "invalid parameters");
+      seqassertn(0, "invalid parameters");
     }
     i += 1;
   }
@@ -445,7 +447,7 @@ struct InterAlignFunctionTransformer : public util::Operator {
   std::vector<Value *> params;
 
   void handle(ReturnInstr *x) override {
-    seqassert(!x->getValue(), "function returns");
+    seqassertn(!x->getValue(), "function returns");
     auto *M = x->getModule();
     x->replaceAll(M->Nr<YieldInstr>(nullptr, /*final=*/true));
   }
@@ -504,7 +506,9 @@ void PipelineInterAlignOptimization::handle(PipelineFlow *p) {
     if (auto *func = getStageFunc(*it)) {
       if (!it->isGenerator() &&
           util::hasAttribute(func, "std.bio.builtin.inter_align") &&
-          util::getReturnType(func)->is(M->getVoidType())) {
+          util::getReturnType(func)->is(M->getNoneType())) {
+        LOG_USER("applying inter_align on {}", func->getName());
+
         // transform aligning function
         InterAlignFunctionTransformer aft(&types);
         auto *clone = cast<BodiedFunc>(cv.forceClone(func));
@@ -531,7 +535,7 @@ void PipelineInterAlignOptimization::handle(PipelineFlow *p) {
         auto *i32 = M->getIntNType(32, true);
 
         auto *parent = cast<BodiedFunc>(getParentFunc());
-        seqassert(parent, "not in a function");
+        seqassertn(parent, "not in a function");
 
         auto *init = M->Nr<SeriesFlow>();
         auto *states =
@@ -575,8 +579,8 @@ void PipelineInterAlignOptimization::handle(PipelineFlow *p) {
              M->getIntType(), types.params, hist->getType(), pairsTemp->getType(),
              statesTemp->getType()},
             {}, alignModule);
-        seqassert(schedFunc, "could not realize scheduler");
-        seqassert(flushFunc, "could not realize flush");
+        seqassertn(schedFunc, "could not realize scheduler");
+        seqassertn(flushFunc, "could not realize flush");
 
         PipelineFlow::Stage stage(replaceStageFunc(*it, schedFunc, cv),
                                   {nullptr, M->Nr<VarValue>(clone), pairs, bufRef,
