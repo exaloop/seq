@@ -228,7 +228,7 @@ class seq:
         if s.start is None and s.stop is None and s.step is None:
             return self.__copy__()
         elif s.start is None:
-            b = ~s.stop
+            b = s.stop.__val__()
             n = len(self)
             if b < 0: b += n
             if b > n: b = n
@@ -237,7 +237,7 @@ class seq:
             else:
                 return seq(self.ptr + (n - b), -b)
         elif s.stop is None:
-            a = ~s.start
+            a = s.start.__val__()
             n = len(self)
             if a < 0: a += n
             if a > n: a = n
@@ -246,7 +246,7 @@ class seq:
             else:
                 return seq(self.ptr, -(n - a))
         else:
-            a, b = ~s.start, ~s.stop
+            a, b = s.start.__val__(), s.stop.__val__()
             n = len(self)
             if a < 0: a += n
             if b < 0: b += n
