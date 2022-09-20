@@ -1,4 +1,5 @@
 from bio.seq import seq
+from copy import copy
 
 # htslib integration
 BAM_FPAIRED        =    1

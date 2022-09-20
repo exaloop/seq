@@ -135,7 +135,7 @@ class bntseq:
         m_pac = self._m_pac
         if l_pac == m_pac:
             m_pac <<= 1
-            self._pac = Ptr[u8](realloc(self._pac.as_byte(), m_pac // 4))
+            self._pac = Ptr[u8](realloc(self._pac.as_byte(), m_pac // 4, 0))
             str.memset((self._pac + l_pac//4).as_byte(), byte(0), (m_pac - l_pac) // 4)
             self._m_pac = m_pac
 

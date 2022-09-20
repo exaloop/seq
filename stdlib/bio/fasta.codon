@@ -3,6 +3,7 @@
 from bio.seq import seq
 from bio.fai import FAIRecord, FAI
 from internal.gc import realloc
+from copy import copy
 
 @tuple
 class FASTARecord:
@@ -71,7 +72,7 @@ class FASTAReader:
             m <<= 1
             if n + s.len > m:
                 m = n + s.len
-            p = realloc(p, m)
+            p = realloc(p, m, 0)
         if validate:
             i = 0
             while i < s.len:
@@ -274,7 +275,7 @@ class pFASTAReader:
             m <<= 1
             if n + s.len > m:
                 m = n + s.len
-            p = realloc(p, m)
+            p = realloc(p, m, 0)
         if validate:
             i = 0
             while i < s.len:

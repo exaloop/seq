@@ -1,4 +1,5 @@
 from bio.seq import seq
+from copy import copy
 
 # Sequence reader in text, line-by-line format.
 @tuple
