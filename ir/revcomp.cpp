@@ -97,9 +97,9 @@ llvm::Value *codegenRevCompByLookup(const unsigned k, llvm::Value *self,
     slice = builder.CreateLShr(slice, i * 8);
     slice = builder.CreateZExtOrTrunc(slice, builder.getInt64Ty());
 
-    llvm::Value *sliceRC =
-        builder.CreateInBoundsGEP(table, {builder.getInt64(0), slice});
-    sliceRC = builder.CreateLoad(sliceRC);
+    llvm::Value *sliceRC = builder.CreateInBoundsGEP(builder.getInt8Ty(), table,
+                                                     {builder.getInt64(0), slice});
+    sliceRC = builder.CreateLoad(builder.getInt8Ty(), sliceRC);
     sliceRC = builder.CreateZExtOrTrunc(sliceRC, kmerType);
     sliceRC = builder.CreateShl(sliceRC, (k - 4 * (i + 1)) * 2);
     result = builder.CreateOr(result, sliceRC);
@@ -114,9 +114,9 @@ llvm::Value *codegenRevCompByLookup(const unsigned k, llvm::Value *self,
     slice = builder.CreateLShr(slice, (k - rem) * 2);
     slice = builder.CreateZExtOrTrunc(slice, builder.getInt64Ty());
 
-    llvm::Value *sliceRC =
-        builder.CreateInBoundsGEP(table, {builder.getInt64(0), slice});
-    sliceRC = builder.CreateLoad(sliceRC);
+    llvm::Value *sliceRC = builder.CreateInBoundsGEP(builder.getInt8Ty(), table,
+                                                     {builder.getInt64(0), slice});
+    sliceRC = builder.CreateLoad(builder.getInt8Ty(), sliceRC);
     sliceRC =
         builder.CreateAShr(sliceRC,
                            (4 - rem) * 2); // slice isn't full 8-bits, so shift out junk
