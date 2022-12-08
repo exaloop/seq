@@ -362,7 +362,11 @@ set(SEQ_FILES
     sw/intersw.cpp)
 add_library(seq SHARED ${SEQ_FILES})
 add_dependencies(seq htslib simde)
-set_source_files_properties(sw/intersw.cpp PROPERTIES COMPILE_FLAGS -march=native)
+if (APPLE AND CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
+    set_source_files_properties(sw/intersw.cpp PROPERTIES COMPILE_FLAGS -mcpu=apple-m1)
+else()
+    set_source_files_properties(sw/intersw.cpp PROPERTIES COMPILE_FLAGS -march=native)
+endif()
 if(APPLE)
     target_link_libraries(seq PRIVATE
       -Wl,-force_load,$<TARGET_FILE:htslib>)
