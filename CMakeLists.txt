@@ -20,6 +20,7 @@ CPMAddPackage(
     GITHUB_REPOSITORY "xz-mirror/xz"
     VERSION 5.2.5
     GIT_TAG e7da44d5151e21f153925781ad29334ae0786101
+    EXCLUDE_FROM_ALL YES
     OPTIONS "BUILD_SHARED_LIBS OFF"
             "CMAKE_POSITION_INDEPENDENT_CODE ON")
 if(xz_ADDED)
@@ -395,8 +396,15 @@ FetchContent_Declare(googletest
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 enable_testing()
+if(IS_DIRECTORY "${googletest_SOURCE_DIR}")
+    set_property(DIRECTORY ${googletest_SOURCE_DIR} PROPERTY EXCLUDE_FROM_ALL YES)
+endif()
 add_executable(seqtest test/main.cpp)
 target_include_directories(seqtest PRIVATE "${CODON_PATH}/include" ${LLVM_INCLUDE_DIRS})
 target_link_directories(seqtest PRIVATE "${CODON_PATH}/lib/codon")
 target_link_libraries(seqtest codonrt codonc gtest_main)
 target_compile_definitions(seqtest PRIVATE TEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test")
+
+install(TARGETS seq DESTINATION build)
+install(FILES plugin.toml DESTINATION .)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/stdlib DESTINATION .)
