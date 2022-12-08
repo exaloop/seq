@@ -825,15 +825,18 @@ void InterSW<W, N, CIGAR>::SW(SeqPair *pairArray, uint8_t *seqBufRef,
 
   const uint_t w = (bandwidth > (int)FF || bandwidth < 0) ? FF : (uint_t)bandwidth;
 
-  uint_t *seq1SoA = (uint_t *)_mm_malloc_seq(MAX_SEQ_LEN * SIMD_WIDTH * sizeof(uint_t), 64);
-  uint_t *seq2SoA = (uint_t *)_mm_malloc_seq(MAX_SEQ_LEN * SIMD_WIDTH * sizeof(uint_t), 64);
+  uint_t *seq1SoA =
+      (uint_t *)_mm_malloc_seq(MAX_SEQ_LEN * SIMD_WIDTH * sizeof(uint_t), 64);
+  uint_t *seq2SoA =
+      (uint_t *)_mm_malloc_seq(MAX_SEQ_LEN * SIMD_WIDTH * sizeof(uint_t), 64);
 
   uint_t *z = nullptr;
   uint_t *off = nullptr;
   size_t offlen = 0;
   if (CIGAR) {
     // TODO: make alloc smaller based on bandwidth and lengths
-    z = (uint_t *)_mm_malloc_seq(LEN_LIMIT * LEN_LIMIT * SIMD_WIDTH * sizeof(uint_t), 64);
+    z = (uint_t *)_mm_malloc_seq(LEN_LIMIT * LEN_LIMIT * SIMD_WIDTH * sizeof(uint_t),
+                                 64);
     offlen = LEN_LIMIT * SIMD_WIDTH * sizeof(uint_t);
     off = (uint_t *)_mm_malloc_seq(offlen, 64);
   }

@@ -19,6 +19,8 @@ unsigned revcompBits(unsigned n) {
   return ~(c1 | c2 | c3 | c4) & 0xffu;
 }
 
+constexpr int RC_TAB_SIZE = 256;
+
 llvm::GlobalVariable *getRevCompTable(llvm::Module *module,
                                       const std::string &name = "seq.revcomp_table") {
   llvm::LLVMContext &context = module->getContext();
@@ -26,7 +28,7 @@ llvm::GlobalVariable *getRevCompTable(llvm::Module *module,
   llvm::GlobalVariable *table = module->getGlobalVariable(name);
 
   if (!table) {
-    std::vector<llvm::Constant *> v(256, llvm::ConstantInt::get(ty, 0));
+    std::vector<llvm::Constant *> v(RC_TAB_SIZE, llvm::ConstantInt::get(ty, 0));
     for (unsigned i = 0; i < v.size(); i++)
       v[i] = llvm::ConstantInt::get(ty, revcompBits(i));
 
@@ -97,8 +99,9 @@ llvm::Value *codegenRevCompByLookup(const unsigned k, llvm::Value *self,
     slice = builder.CreateLShr(slice, i * 8);
     slice = builder.CreateZExtOrTrunc(slice, builder.getInt64Ty());
 
-    llvm::Value *sliceRC = builder.CreateInBoundsGEP(builder.getInt8Ty(), table,
-                                                     {builder.getInt64(0), slice});
+    llvm::Value *sliceRC = builder.CreateInBoundsGEP(
+        llvm::ArrayType::get(builder.getInt8Ty(), RC_TAB_SIZE), table,
+        {builder.getInt64(0), slice});
     sliceRC = builder.CreateLoad(builder.getInt8Ty(), sliceRC);
     sliceRC = builder.CreateZExtOrTrunc(sliceRC, kmerType);
     sliceRC = builder.CreateShl(sliceRC, (k - 4 * (i + 1)) * 2);
@@ -114,8 +117,9 @@ llvm::Value *codegenRevCompByLookup(const unsigned k, llvm::Value *self,
     slice = builder.CreateLShr(slice, (k - rem) * 2);
     slice = builder.CreateZExtOrTrunc(slice, builder.getInt64Ty());
 
-    llvm::Value *sliceRC = builder.CreateInBoundsGEP(builder.getInt8Ty(), table,
-                                                     {builder.getInt64(0), slice});
+    llvm::Value *sliceRC = builder.CreateInBoundsGEP(
+        llvm::ArrayType::get(builder.getInt8Ty(), RC_TAB_SIZE), table,
+        {builder.getInt64(0), slice});
     sliceRC = builder.CreateLoad(builder.getInt8Ty(), sliceRC);
     sliceRC =
         builder.CreateAShr(sliceRC,
