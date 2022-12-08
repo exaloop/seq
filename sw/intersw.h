@@ -32,7 +32,26 @@ struct SeqPair {
 #define ALWAYS_INLINE inline
 #endif
 
-#include <immintrin.h>
+#define SIMDE_ENABLE_NATIVE_ALIASES
+#include <simde/x86/avx2.h>
+#include <simde/x86/avx512.h>
+#include <simde/x86/sse2.h>
+#include <simde/x86/sse4.1.h>
+
+// Allocate aligned blocks of memory.
+// https://software.intel.com/en-us/
+//         cpp-compiler-developer-guide-and-reference-allocating-and-freeing-aligned-memory-blocks
+ALWAYS_INLINE void *_mm_malloc_seq(size_t size, size_t align) {
+  void *ptr;
+  if (align == 1)
+    return malloc(size);
+  if (align == 2 || (sizeof(void *) == 8 && align == 4))
+    align = sizeof(void *);
+  if (!posix_memalign(&ptr, align, size))
+    return ptr;
+  return NULL;
+}
+ALWAYS_INLINE void _mm_free_seq(void *addr) { free(addr); }
 
 extern "C" void *seq_alloc_atomic(size_t n);
 extern "C" void *seq_realloc(void *p, size_t n);
@@ -236,6 +255,7 @@ template <> struct SIMD<256, 8> {
   }
 };
 
+#ifdef __AVX512BW__
 template <> struct SIMD<512, 8> {
   static constexpr int MAX_SEQ_LEN = 128;
   static constexpr int PFD = 5;
@@ -330,6 +350,7 @@ template <> struct SIMD<512, 8> {
 
   static ALWAYS_INLINE bool none(Cmp c) { return c == 0; }
 };
+#endif
 
 template <> struct SIMD<128, 16> {
   static constexpr int MAX_SEQ_LEN = 32768;
@@ -504,6 +525,7 @@ template <> struct SIMD<256, 16> {
   }
 };
 
+#ifdef __AVX512BW__
 template <> struct SIMD<512, 16> {
   static constexpr int MAX_SEQ_LEN = 32768;
   static constexpr int PFD = 2;
@@ -598,6 +620,7 @@ template <> struct SIMD<512, 16> {
 
   static ALWAYS_INLINE bool none(Cmp c) { return c == 0; }
 };
+#endif
 
 template <unsigned W, unsigned N, bool CIGAR = false> class InterSW {
 public:
@@ -672,6 +695,7 @@ template __attribute__((target("avx2"))) void
 InterSW<256, 16, true>::SW(SeqPair *pairArray, uint8_t *seqBufRef, uint8_t *seqBufQer,
                            int32_t numPairs, int bandwidth);
 
+#ifdef __AVX512BW__
 template __attribute__((target("avx512bw"))) void
 InterSW<512, 8, false>::SW(SeqPair *pairArray, uint8_t *seqBufRef, uint8_t *seqBufQer,
                            int32_t numPairs, int bandwidth);
@@ -684,6 +708,7 @@ InterSW<512, 16, false>::SW(SeqPair *pairArray, uint8_t *seqBufRef, uint8_t *seq
 template __attribute__((target("avx512bw"))) void
 InterSW<512, 16, true>::SW(SeqPair *pairArray, uint8_t *seqBufRef, uint8_t *seqBufQer,
                            int32_t numPairs, int bandwidth);
+#endif
 
 template __attribute__((target("sse4.1"))) void
 InterSW<128, 8, false>::SWCore(uint_t seq1SoA[], uint_t seq2SoA[], uint_t nrow,
@@ -727,6 +752,7 @@ InterSW<256, 16, true>::SWCore(uint_t seq1SoA[], uint_t seq2SoA[], uint_t nrow,
                                int32_t numPairs, int zdrop, uint_t w, uint_t qlen[],
                                uint_t myband[], uint_t z[], uint_t off[]);
 
+#ifdef __AVX512BW__
 template __attribute__((target("avx512bw"))) void
 InterSW<512, 8, false>::SWCore(uint_t seq1SoA[], uint_t seq2SoA[], uint_t nrow,
                                uint_t ncol, SeqPair *p, SeqPair *endp, uint_t h0[],
@@ -747,6 +773,7 @@ InterSW<512, 16, true>::SWCore(uint_t seq1SoA[], uint_t seq2SoA[], uint_t nrow,
                                uint_t ncol, SeqPair *p, SeqPair *endp, uint_t h0[],
                                int32_t numPairs, int zdrop, uint_t w, uint_t qlen[],
                                uint_t myband[], uint_t z[], uint_t off[]);
+#endif
 
 template <unsigned W, unsigned N, bool CIGAR>
 InterSW<W, N, CIGAR>::InterSW(const int o_del, const int e_del, const int o_ins,
@@ -769,9 +796,9 @@ InterSW<W, N, CIGAR>::InterSW(const int o_del, const int e_del, const int o_ins,
   constexpr int SIMD_WIDTH = W / N;
 
   F = H1 = H2 = nullptr;
-  F = (int_t *)_mm_malloc(MAX_SEQ_LEN * SIMD_WIDTH * sizeof(int_t), 64);
-  H1 = (int_t *)_mm_malloc(MAX_SEQ_LEN * SIMD_WIDTH * sizeof(int_t), 64);
-  H2 = (int_t *)_mm_malloc(MAX_SEQ_LEN * SIMD_WIDTH * sizeof(int_t), 64);
+  F = (int_t *)_mm_malloc_seq(MAX_SEQ_LEN * SIMD_WIDTH * sizeof(int_t), 64);
+  H1 = (int_t *)_mm_malloc_seq(MAX_SEQ_LEN * SIMD_WIDTH * sizeof(int_t), 64);
+  H2 = (int_t *)_mm_malloc_seq(MAX_SEQ_LEN * SIMD_WIDTH * sizeof(int_t), 64);
 
   if (F == nullptr || H1 == nullptr || H2 == nullptr) {
     fprintf(stderr, "failed to allocate memory for inter-sequence alignment\n");
@@ -780,9 +807,9 @@ InterSW<W, N, CIGAR>::InterSW(const int o_del, const int e_del, const int o_ins,
 }
 
 template <unsigned W, unsigned N, bool CIGAR> InterSW<W, N, CIGAR>::~InterSW() {
-  _mm_free(F);
-  _mm_free(H1);
-  _mm_free(H2);
+  _mm_free_seq(F);
+  _mm_free_seq(H1);
+  _mm_free_seq(H2);
 }
 
 template <unsigned W, unsigned N, bool CIGAR>
@@ -798,17 +825,17 @@ void InterSW<W, N, CIGAR>::SW(SeqPair *pairArray, uint8_t *seqBufRef,
 
   const uint_t w = (bandwidth > (int)FF || bandwidth < 0) ? FF : (uint_t)bandwidth;
 
-  uint_t *seq1SoA = (uint_t *)_mm_malloc(MAX_SEQ_LEN * SIMD_WIDTH * sizeof(uint_t), 64);
-  uint_t *seq2SoA = (uint_t *)_mm_malloc(MAX_SEQ_LEN * SIMD_WIDTH * sizeof(uint_t), 64);
+  uint_t *seq1SoA = (uint_t *)_mm_malloc_seq(MAX_SEQ_LEN * SIMD_WIDTH * sizeof(uint_t), 64);
+  uint_t *seq2SoA = (uint_t *)_mm_malloc_seq(MAX_SEQ_LEN * SIMD_WIDTH * sizeof(uint_t), 64);
 
   uint_t *z = nullptr;
   uint_t *off = nullptr;
   size_t offlen = 0;
   if (CIGAR) {
     // TODO: make alloc smaller based on bandwidth and lengths
-    z = (uint_t *)_mm_malloc(LEN_LIMIT * LEN_LIMIT * SIMD_WIDTH * sizeof(uint_t), 64);
+    z = (uint_t *)_mm_malloc_seq(LEN_LIMIT * LEN_LIMIT * SIMD_WIDTH * sizeof(uint_t), 64);
     offlen = LEN_LIMIT * SIMD_WIDTH * sizeof(uint_t);
-    off = (uint_t *)_mm_malloc(offlen, 64);
+    off = (uint_t *)_mm_malloc_seq(offlen, 64);
   }
 
   if (seq1SoA == nullptr || seq2SoA == nullptr) {
@@ -960,11 +987,11 @@ void InterSW<W, N, CIGAR>::SW(SeqPair *pairArray, uint8_t *seqBufRef,
     }
   }
 
-  _mm_free(seq1SoA);
-  _mm_free(seq2SoA);
+  _mm_free_seq(seq1SoA);
+  _mm_free_seq(seq2SoA);
   if (CIGAR) {
-    _mm_free(z);
-    _mm_free(off);
+    _mm_free_seq(z);
+    _mm_free_seq(off);
   }
 }
 

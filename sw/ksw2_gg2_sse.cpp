@@ -1,11 +1,22 @@
 #include "ksw2.h"
 #include <cstddef>
 
+#ifdef __ARM_NEON__
+#define __SSE2__
+#define __SSE4_1__
+#endif
+
+#define SIMDE_ENABLE_NATIVE_ALIASES
+
 #ifdef __SSE2__
-#include <emmintrin.h>
+#include <simde/x86/sse2.h>
+
+#ifdef KSW_SSE2_ONLY
+#undef __SSE4_1__
+#endif
 
 #ifdef __SSE4_1__
-#include <smmintrin.h>
+#include <simde/x86/sse4.1.h>
 #endif
 
 int ksw_gg2_sse(void *km, int qlen, const uint8_t *query, int tlen,

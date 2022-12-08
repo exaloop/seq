@@ -2,6 +2,7 @@
 #include "ksw2.h"
 #include "seq.h"
 #include <cstdlib>
+#include <string>
 
 struct InterAlignParams { // must be consistent with bio/align.seq
   int8_t a;
@@ -72,10 +73,11 @@ void __cpuidex(int cpuid[4], int func_id, int subfunc_id) {
   __asm__ volatile("cpuid"
                    : "=a"(cpuid[0]), "=b"(cpuid[1]), "=c"(cpuid[2]), "=d"(cpuid[3])
                    : "0"(func_id), "2"(subfunc_id));
-#else // on 32bit, ebx can NOT be used as PIC code
+#elif defined(__i386__) // on 32bit, ebx can NOT be used as PIC code
   __asm__ volatile("xchgl %%ebx, %1; cpuid; xchgl %%ebx, %1"
                    : "=a"(cpuid[0]), "=r"(cpuid[1]), "=c"(cpuid[2]), "=d"(cpuid[3])
                    : "0"(func_id), "2"(subfunc_id));
+#else
 #endif
 }
 #endif
@@ -85,6 +87,20 @@ static int intersw_simd = -1;
 static int SEQ_MAXSIMD = (SIMD_AVX512F << 1) - 1;
 
 static int x86_simd() {
+  char *env = getenv("SEQ_SWSIMD");
+  int SEQ_MAXSIMD = (SIMD_AVX512F << 1) - 1;
+  if (env && std::string(env) == "AVX2")
+    SEQ_MAXSIMD = (SIMD_AVX2 << 1) - 1;
+  if (env && std::string(env) == "AVX")
+    SEQ_MAXSIMD = (SIMD_AVX << 1) - 1;
+  if (env && std::string(env) == "AVX512")
+    SEQ_MAXSIMD = (SIMD_AVX512F << 1) - 1;
+  if (env && std::string(env) == "SSE4_2")
+    SEQ_MAXSIMD = (SIMD_SSE4_2 << 1) - 1;
+
+#if __ARM_NEON__
+  return SIMD_AVX2 & SEQ_MAXSIMD;
+#else
   int flag = 0, cpuid[4], max_id;
   __cpuidex(cpuid, 0, 0);
   max_id = cpuid[0];
@@ -113,6 +129,7 @@ static int x86_simd() {
       flag |= SIMD_AVX512F & SEQ_MAXSIMD;
   }
   return flag;
+#endif
 }
 
 SEQ_FUNC seq_t seq_get_interaln_simd() {
@@ -120,7 +137,8 @@ SEQ_FUNC seq_t seq_get_interaln_simd() {
     intersw_simd = x86_simd();
   if (intersw_simd & SIMD_AVX512F) {
     return make_str("AVX512");
-  } else if (intersw_simd & SIMD_AVX2) {
+  }
+  if (intersw_simd & SIMD_AVX2) {
     return make_str("AVX2");
   } else if (intersw_simd & SIMD_SSE4_1) {
     return make_str("SSE4_1");
@@ -196,10 +214,12 @@ void seq_inter_align128_avx2(InterAlignParams *paramsx, SeqPair *seqPairArray,
 
 void seq_inter_align128_avx512(InterAlignParams *paramsx, SeqPair *seqPairArray,
                                uint8_t *seqBufRef, uint8_t *seqBufQer, int numPairs) {
+#ifdef __AVX512BW__
   typedef InterSW<512, 8, /*CIGAR=*/false> SW8;
   typedef InterSW<512, 8, /*CIGAR=*/true> SWbt8;
   seq_inter_align128_generic<SW8, SWbt8>(paramsx, seqPairArray, seqBufRef, seqBufQer,
                                          numPairs);
+#endif
 }
 
 SEQ_FUNC void seq_inter_align128(InterAlignParams *paramsx, SeqPair *seqPairArray,
@@ -240,10 +260,12 @@ void seq_inter_align16_avx2(InterAlignParams *paramsx, SeqPair *seqPairArray,
 
 void seq_inter_align16_avx512(InterAlignParams *paramsx, SeqPair *seqPairArray,
                               uint8_t *seqBufRef, uint8_t *seqBufQer, int numPairs) {
+#ifdef __AVX512BW__
   typedef InterSW<512, 16, /*CIGAR=*/false> SW16;
   typedef InterSW<512, 16, /*CIGAR=*/true> SWbt16;
   seq_inter_align16_generic<SW16, SWbt16>(paramsx, seqPairArray, seqBufRef, seqBufQer,
                                           numPairs);
+#endif
 }
 
 SEQ_FUNC void seq_inter_align16(InterAlignParams *paramsx, SeqPair *seqPairArray,
