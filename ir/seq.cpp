@@ -2,7 +2,7 @@
 #include "pipeline.h"
 #include "revcomp.h"
 
-#include "codon/sir/transform/lowering/pipeline.h"
+#include "codon/cir/transform/lowering/pipeline.h"
 
 namespace seq {
 

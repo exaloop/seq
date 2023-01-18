@@ -1,10 +1,11 @@
 #include "revcomp.h"
-#include "codon/sir/analyze/dataflow/cfg.h"
-#include "codon/sir/dsl/codegen.h"
-#include "codon/sir/llvm/llvisitor.h"
-#include "codon/sir/util/cloning.h"
-#include "codon/sir/util/irtools.h"
-#include "codon/sir/util/matching.h"
+
+#include "codon/cir/analyze/dataflow/cfg.h"
+#include "codon/cir/dsl/codegen.h"
+#include "codon/cir/llvm/llvisitor.h"
+#include "codon/cir/util/cloning.h"
+#include "codon/cir/util/irtools.h"
+#include "codon/cir/util/matching.h"
 
 namespace seq {
 

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "codon/sir/dsl/nodes.h"
-#include "codon/sir/sir.h"
-#include "codon/sir/transform/pass.h"
+#include "codon/cir/cir.h"
+#include "codon/cir/dsl/nodes.h"
+#include "codon/cir/transform/pass.h"
 
 namespace seq {
 

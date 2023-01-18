@@ -11,14 +11,14 @@
 #include <unistd.h>
 #include <vector>
 
+#include "codon/cir/llvm/llvisitor.h"
+#include "codon/cir/transform/manager.h"
+#include "codon/cir/transform/pass.h"
+#include "codon/cir/util/inlining.h"
+#include "codon/cir/util/irtools.h"
+#include "codon/cir/util/outlining.h"
 #include "codon/compiler/compiler.h"
 #include "codon/compiler/error.h"
-#include "codon/sir/llvm/llvisitor.h"
-#include "codon/sir/transform/manager.h"
-#include "codon/sir/transform/pass.h"
-#include "codon/sir/util/inlining.h"
-#include "codon/sir/util/irtools.h"
-#include "codon/sir/util/outlining.h"
 #include "codon/util/common.h"
 
 #include "gtest/gtest.h"
