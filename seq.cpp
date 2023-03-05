@@ -2,6 +2,11 @@
 #include "sw/ksw2.h"
 #include <cstdlib>
 
+#ifdef __ARM_NEON__
+#define __SSE2__
+#define __SSE4_1__
+#endif
+
 /*
  * Alignment
  *
