@@ -8,4 +8,4 @@ supported = ">=0.15.4"
 [library]
 cpp = "build/libseq"
 codon = "stdlib"
-link = ["{root}/build/libseq_static.a", "-lc++"]
+link = ["{root}/build/libseq_static.a"]
