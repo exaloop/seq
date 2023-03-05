@@ -46,7 +46,7 @@ if(htslib_ADDED)
         "#define HTS_CFLAGS \"\"\n"
         "#define HTS_LDFLAGS \"\"\n"
         "#define HTS_LIBS \"\"\n")
-    add_library(htslib STATIC
+    set(HTSLIB_FILES
         "${htslib_SOURCE_DIR}/kfunc.c"
         "${htslib_SOURCE_DIR}/kstring.c"
         "${htslib_SOURCE_DIR}/bcf_sr_sort.c"
@@ -91,6 +91,7 @@ if(htslib_ADDED)
         "${htslib_SOURCE_DIR}/htscodecs/htscodecs/rANS_static.c"
         "${htslib_SOURCE_DIR}/htscodecs/htscodecs/rle.c"
         "${htslib_SOURCE_DIR}/htscodecs/htscodecs/tokenise_name3.c")
+    add_library(htslib STATIC ${HTSLIB_FILES})
     target_include_directories(htslib BEFORE PRIVATE "${htslib_SOURCE_DIR}" "${xz_SOURCE_DIR}/src/liblzma/api")
     set_target_properties(htslib PROPERTIES
         POSITION_INDEPENDENT_CODE ON
@@ -348,12 +349,6 @@ endif()
 set(SEQ_FILES
     seq.cpp
     seq.h
-    ir/pipeline.cpp
-    ir/pipeline.h
-    ir/revcomp.cpp
-    ir/revcomp.h
-    ir/seq.cpp
-    ir/seq.h
     sw/ksw2.h
     sw/ksw2_extd2_sse.cpp
     sw/ksw2_exts2_sse.cpp
@@ -361,8 +356,17 @@ set(SEQ_FILES
     sw/ksw2_gg2_sse.cpp
     sw/intersw.h
     sw/intersw.cpp)
-add_library(seq SHARED ${SEQ_FILES})
+set(SEQ_IR_FILES
+    ir/pipeline.cpp
+    ir/pipeline.h
+    ir/revcomp.cpp
+    ir/revcomp.h
+    ir/seq.cpp
+    ir/seq.h)
+add_library(seq SHARED ${SEQ_FILES} ${SEQ_IR_FILES})
+add_library(seq_static STATIC ${HTSLIB_FILES} ${SEQ_FILES})
 add_dependencies(seq htslib simde)
+add_dependencies(seq_static htslib simde)
 if (APPLE AND CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
     set_source_files_properties(sw/intersw.cpp PROPERTIES COMPILE_FLAGS -mcpu=apple-m1)
 else()
@@ -388,6 +392,12 @@ target_include_directories(seq PRIVATE "${CODON_PATH}/include" ${LLVM_INCLUDE_DI
 target_link_directories(seq PRIVATE "${CODON_PATH}/lib/codon")
 target_link_libraries(seq PRIVATE codonrt codonc)
 
+target_include_directories(seq_static BEFORE PRIVATE "${htslib_SOURCE_DIR}" "${xz_SOURCE_DIR}/src/liblzma/api" "${CODON_PATH}/include" "${simde_SOURCE_DIR}")
+set_target_properties(seq_static PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+    VISIBILITY_INLINES_HIDDEN ON)
+
+
 # Download and unpack googletest at configure time
 include(FetchContent)
 FetchContent_Declare(googletest
@@ -406,5 +416,6 @@ target_link_libraries(seqtest codonrt codonc gtest_main)
 target_compile_definitions(seqtest PRIVATE TEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test")
 
 install(TARGETS seq DESTINATION build)
+install(TARGETS seq_static DESTINATION build)
 install(FILES plugin.toml DESTINATION .)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/stdlib DESTINATION .)
