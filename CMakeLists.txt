@@ -7,6 +7,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g -fno-limit-debug-info")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 include_directories(.)
 
+
 set(CPM_DOWNLOAD_VERSION 0.32.3)
 set(CPM_DOWNLOAD_LOCATION "${CMAKE_BINARY_DIR}/cmake/CPM_${CPM_DOWNLOAD_VERSION}.cmake")
 if(NOT (EXISTS ${CPM_DOWNLOAD_LOCATION}))
@@ -149,6 +150,10 @@ add_definitions(${LLVM_DEFINITIONS_LIST})
 if(NOT CODON_PATH)
     set(CODON_PATH "$ENV{HOME}/.codon")
 endif()
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set(CMAKE_INSTALL_PREFIX "${CODON_PATH}/lib/codon/plugins/seq" CACHE PATH "Use the existing Codon installation" FORCE)
+endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+
 
 target_include_directories(seq PRIVATE "${CODON_PATH}/include" ${LLVM_INCLUDE_DIRS} "${simde_SOURCE_DIR}")
 target_link_directories(seq PRIVATE "${CODON_PATH}/lib/codon")
