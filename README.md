@@ -32,6 +32,18 @@ for sub in s.split(3, step=2):
         print(~kmer)  # '~' also works on k-mers
 ```
 
+## Installation
+
+You need [Codon](https://github.com/exaloop/codon) for Seq to work. Assuming that Codon is installed in `$HOME/.codon`, run:
+```bash
+curl -L https://github.com/exaloop/seq/releases/download/v0.11.3/seq-$(uname -s | awk '{print tolower($0)}')-$(uname -m).tar.gz | tar zxvf - -C .codon/lib/codon/plugins
+```
+
+Afterwards, you can use Seq with `-plugin seq`; for example:
+```bash
+codon run -plugin seq test.codon
+```
+
 ## Documentation
 
 Please check [docs.seq-lang.org](https://docs.seq-lang.org) for in-depth documentation.
