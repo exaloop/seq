@@ -22,8 +22,8 @@ esac
 mkdir $HOME/.codon
 cd $HOME/.codon
 curl -L https://github.com/exaloop/codon/releases/download/v0.16.3/codon-$(uname -s | awk '{print tolower($0)}')-$(uname -m).tar.gz | tar zxvf - --strip-components=1
-cd $OPT
-curl -L https://github.com/exaloop/llvm-project/releases/download/codon-15.0.1/llvm-$(uname -s | awk '{print tolower($0)}')-$(uname -m).tar.gz | tar zxvf - --strip-components=1
+cd /
+curl -L https://github.com/exaloop/llvm-project/releases/download/codon-15.0.1/llvm-$(uname -s | awk '{print tolower($0)}')-$(uname -m).tar.gz | tar zxvf -
 
 cd $1
 cmake -S . -B build \
