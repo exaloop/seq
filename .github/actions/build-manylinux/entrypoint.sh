@@ -2,12 +2,14 @@
 set -e
 
 # setup
+TEST=1
 if [ -n "$(command -v yum)" ]
 then
   yum -y update
   yum -y install bzip2-devel
 elif [ -n "$(command -v apt-get)" ]
 then
+  TEST=0
   apt-get -y update
   apt-get -y install libbz2-dev
 else
@@ -32,8 +34,14 @@ cmake -S . -B build \
   -DLLVM_DIR=$OPT/llvm-codon/lib/cmake/llvm \
   -DCMAKE_C_COMPILER=$OPT/llvm-codon/bin/clang \
   -DCMAKE_CXX_COMPILER=$OPT/llvm-codon/bin/clang++
-cmake --build build
-CODON_PATH=$HOME/.codon/lib/codon/stdlib build/seqtest
+if [ $TEST -eq 1 ]
+then
+  cmake --build build
+  CODON_PATH=$HOME/.codon/lib/codon/stdlib build/seqtest
+else
+  cmake --build build --target seq
+  cmake --build build --target seq_static
+fi
 cmake --install build --prefix=$HOME/.codon/lib/codon/plugins/seq
 tar czvf seq-$(uname -s | awk '{print tolower($0)}')-$(uname -m).tar.gz -C $HOME/.codon/lib/codon/plugins seq
 echo "Done"
