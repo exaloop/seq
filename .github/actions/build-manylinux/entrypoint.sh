@@ -33,7 +33,7 @@ cmake -S . -B build \
   -DCMAKE_C_COMPILER=$OPT/llvm-codon/bin/clang \
   -DCMAKE_CXX_COMPILER=$OPT/llvm-codon/bin/clang++
 cmake --build build
-CODON_PATH=$HOME/.codon/lib/codon/stdlib build/seq_test
+CODON_PATH=$HOME/.codon/lib/codon/stdlib build/seqtest
 cmake --install build --prefix=$HOME/.codon/lib/codon/plugins/seq
 tar czvf seq-$(uname -s | awk '{print tolower($0)}')-$(uname -m).tar.gz -C $HOME/.codon/lib/codon/plugins seq
 echo "Done"
