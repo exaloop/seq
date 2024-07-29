@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 
 #define KSW_NEG_INF (-0x40000000)
 
@@ -112,7 +113,11 @@ int ksw_ll_i16(void *q, int tlen, const uint8_t *target, int gapo, int gape, int
  ************************************/
 
 extern "C" void *seq_alloc_atomic(size_t n);
-extern "C" void *seq_calloc_atomic(size_t m, size_t n);
+inline void *seq_calloc_atomic(size_t m, size_t n) {
+	void *p = seq_alloc_atomic(m * n);
+	memset(p, 0, m*n);
+	return p;
+}
 extern "C" void *seq_realloc(void *p, size_t n);
 extern "C" void seq_free(void *p);
 #define kmalloc(km, size) seq_alloc_atomic((size))
