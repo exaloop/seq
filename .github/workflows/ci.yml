@@ -14,7 +14,7 @@ on:
 jobs:
   release:
     name: Create GitHub Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Check
         if: contains(github.ref, 'tags/v')
@@ -44,55 +44,55 @@ jobs:
           name: release_url
           path: release_url.txt
 
-  manylinux:
-    runs-on: ubuntu-latest
-    name: Seq CI (manylinux)
-    needs: [ release ]
-    steps:
-      - uses: actions/checkout@v2
+  # manylinux:
+  #   runs-on: ubuntu-latest
+  #   name: Seq CI (manylinux)
+  #   needs: [ release ]
+  #   steps:
+  #     - uses: actions/checkout@v2
 
-      - name: Main
-        uses: ./.github/actions/build-manylinux
+  #     - name: Main
+  #       uses: ./.github/actions/build-manylinux
 
-      - name: Load Release URL File
-        if: contains(github.ref, 'tags/v')
-        uses: actions/download-artifact@v4
-        with:
-          name: release_url
+  #     - name: Load Release URL File
+  #       if: contains(github.ref, 'tags/v')
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: release_url
 
-      - name: Get Release URL
-        id: get_release_url
-        if: contains(github.ref, 'tags/v')
-        run: |
-          echo ::set-output name=file_name::${REPOSITORY_NAME##*/}-${TAG_REF_NAME##*/v} # RepositoryName-v1.0.0
-          value=`cat release_url/release_url.txt`
-          echo ::set-output name=upload_url::$value
-        env:
-          TAG_REF_NAME: ${{ github.ref }}
-          REPOSITORY_NAME: ${{ github.repository }}
+  #     - name: Get Release URL
+  #       id: get_release_url
+  #       if: contains(github.ref, 'tags/v')
+  #       run: |
+  #         echo ::set-output name=file_name::${REPOSITORY_NAME##*/}-${TAG_REF_NAME##*/v} # RepositoryName-v1.0.0
+  #         value=`cat release_url/release_url.txt`
+  #         echo ::set-output name=upload_url::$value
+  #       env:
+  #         TAG_REF_NAME: ${{ github.ref }}
+  #         REPOSITORY_NAME: ${{ github.repository }}
 
-      - name: Upload Release Asset
-        if: contains(github.ref, 'tags/v')
-        uses: actions/upload-release-asset@v1.0.1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.get_release_url.outputs.upload_url }}
-          asset_path: ./seq-linux-x86_64.tar.gz
-          asset_name: seq-linux-x86_64.tar.gz
-          asset_content_type: application/gzip
+  #     - name: Upload Release Asset
+  #       if: contains(github.ref, 'tags/v')
+  #       uses: actions/upload-release-asset@v1.0.1
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       with:
+  #         upload_url: ${{ steps.get_release_url.outputs.upload_url }}
+  #         asset_path: ./seq-linux-x86_64.tar.gz
+  #         asset_name: seq-linux-x86_64.tar.gz
+  #         asset_content_type: application/gzip
 
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: manylinux-x86_64
-          path: seq-linux-x86_64.tar.gz
+  #     - name: Upload Artifacts
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: manylinux-x86_64
+  #         path: seq-linux-x86_64.tar.gz
 
   main:
     strategy:
       matrix:
         os:
-          - ubuntu-latest
+          - ubuntu-22.04
           - macos-11
     runs-on: ${{ matrix.os }}
     name: Seq CI
@@ -130,6 +130,17 @@ jobs:
           upload_url: ${{ steps.get_release_url.outputs.upload_url }}
           asset_path: ./seq-darwin-x86_64.tar.gz
           asset_name: seq-darwin-x86_64.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Upload Release Asset
+        if: contains(github.ref, 'tags/v') && startsWith(matrix.os, 'ubuntu')
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_url.outputs.upload_url }}
+          asset_path: ./seq-linux-x86_64.tar.gz
+          asset_name: seq-linux-x86_64.tar.gz
           asset_content_type: application/gzip
 
       - name: Upload Artifacts

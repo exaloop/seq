@@ -74,10 +74,10 @@ Value *replaceStageFunc(PipelineFlow::Stage &stage, Func *schedFunc,
                         util::CloneVisitor &cv) {
   auto *callee = stage.getCallee();
   auto *M = callee->getModule();
-  if (auto *f = cast<BodiedFunc>(util::getFunc(callee))) {
+  if (cast<BodiedFunc>(util::getFunc(callee))) {
     return M->Nr<VarValue>(schedFunc);
   } else if (auto *s = cast<FlowInstr>(callee)) {
-    if (auto *f = cast<BodiedFunc>(util::getFunc(s->getValue()))) {
+    if (cast<BodiedFunc>(util::getFunc(s->getValue()))) {
       auto *clone = cast<FlowInstr>(cv.clone(s));
       clone->setValue(M->Nr<VarValue>(schedFunc));
       return clone;
@@ -266,10 +266,10 @@ void PipelinePrefetchOptimization::handle(PipelineFlow *p) {
         auto *init = M->Nr<SeriesFlow>();
         auto *parent = cast<BodiedFunc>(getParentFunc());
         seqassertn(parent, "not in a function");
-        auto *filled = util::makeVar(M->getInt(0), init, parent);
-        auto *next = util::makeVar(M->getInt(0), init, parent);
-        auto *states = util::makeVar(
-            M->Nr<StackAllocInstr>(statesType, SCHED_WIDTH_PREFETCH), init, parent);
+        auto *filled = M->Nr<VarValue>(util::makeVar(M->getInt(0), init, parent));
+        auto *next = M->Nr<VarValue>(util::makeVar(M->getInt(0), init, parent));
+        auto *states = M->Nr<VarValue>(util::makeVar(
+            M->Nr<StackAllocInstr>(statesType, SCHED_WIDTH_PREFETCH), init, parent));
         insertBefore(init);
 
         // scheduler
@@ -540,19 +540,21 @@ void PipelineInterAlignOptimization::handle(PipelineFlow *p) {
         seqassertn(parent, "not in a function");
 
         auto *init = M->Nr<SeriesFlow>();
-        auto *states =
-            util::makeVar(util::alloc(coroType->getReturnType(), W), init, parent);
-        auto *statesTemp =
-            util::makeVar(util::alloc(coroType->getReturnType(), W), init, parent);
-        auto *pairs = util::makeVar(util::alloc(types.pair, W), init, parent);
-        auto *pairsTemp = util::makeVar(util::alloc(types.pair, W), init, parent);
-        auto *bufRef =
-            util::makeVar(util::alloc(M->getByteType(), LEN_LIMIT * W), init, parent);
-        auto *bufQer =
-            util::makeVar(util::alloc(M->getByteType(), LEN_LIMIT * W), init, parent);
-        auto *hist = util::makeVar(util::alloc(i32, MAX_SEQ_LEN8 + MAX_SEQ_LEN16 + 32),
-                                   init, parent);
-        auto *filled = util::makeVar(M->getInt(0), init, parent);
+        auto *states = M->Nr<VarValue>(
+            util::makeVar(util::alloc(coroType->getReturnType(), W), init, parent));
+        auto *statesTemp = M->Nr<VarValue>(
+            util::makeVar(util::alloc(coroType->getReturnType(), W), init, parent));
+        auto *pairs =
+            M->Nr<VarValue>(util::makeVar(util::alloc(types.pair, W), init, parent));
+        auto *pairsTemp =
+            M->Nr<VarValue>(util::makeVar(util::alloc(types.pair, W), init, parent));
+        auto *bufRef = M->Nr<VarValue>(
+            util::makeVar(util::alloc(M->getByteType(), LEN_LIMIT * W), init, parent));
+        auto *bufQer = M->Nr<VarValue>(
+            util::makeVar(util::alloc(M->getByteType(), LEN_LIMIT * W), init, parent));
+        auto *hist = M->Nr<VarValue>(util::makeVar(
+            util::alloc(i32, MAX_SEQ_LEN8 + MAX_SEQ_LEN16 + 32), init, parent));
+        auto *filled = M->Nr<VarValue>(util::makeVar(M->getInt(0), init, parent));
         insertBefore(init);
 
         auto *width = M->getInt(W);
