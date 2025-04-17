@@ -93,7 +93,7 @@ jobs:
       matrix:
         os:
           - ubuntu-22.04
-          - macos-13
+          - macos-latest
     runs-on: ${{ matrix.os }}
     name: Seq CI
     needs: [ release ]
@@ -128,8 +128,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.get_release_url.outputs.upload_url }}
-          asset_path: ./seq-darwin-x86_64.tar.gz
-          asset_name: seq-darwin-x86_64.tar.gz
+          asset_path: ./seq-darwin-arm64.tar.gz
+          asset_name: seq-darwin-arm64.tar.gz
           asset_content_type: application/gzip
 
       - name: Upload Release Asset
@@ -147,8 +147,8 @@ jobs:
         if: startsWith(matrix.os, 'macos')
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os }}-x86_64
-          path: seq-darwin-x86_64.tar.gz
+          name: ${{ matrix.os }}-arm64
+          path: seq-darwin-arm64.tar.gz
 
       - name: Upload Artifacts
         if: startsWith(matrix.os, 'ubuntu')
