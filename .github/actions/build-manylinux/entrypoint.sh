@@ -18,8 +18,12 @@ fi
 
 mkdir $HOME/.codon
 cd $HOME/.codon
-# TODO: fix ARM issue...
+if [[ $OSTYPE == 'darwin'* ]];
+then
 curl -L https://github.com/exaloop/codon/releases/download/v0.18.2/codon-$(uname -s | awk '{print tolower($0)}')-arm64.tar.gz | tar zxvf - --strip-components=1
+else
+curl -L https://github.com/exaloop/codon/releases/download/v0.18.2/codon-$(uname -s | awk '{print tolower($0)}')-$(uname -m).tar.gz | tar zxvf - --strip-components=1
+fi
 cd /opt
 curl -L https://github.com/exaloop/llvm-project/releases/download/codon-17.0.6/llvm-codon-17.0.6-$(uname -s | awk '{print tolower($0)}')-$(uname -m).tar.gz | tar zxvf -
 
