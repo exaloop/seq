@@ -12,19 +12,6 @@ on:
       - develop
 
 jobs:
-  create_release:
-    name: Create GitHub Release
-    runs-on: ubuntu-22.04
-    outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-    permissions:
-      contents: write
-    steps:
-      - name: Create Release
-        if: contains(github.ref, 'tags/v')
-        id: create_release
-        uses: ncipollo/release-action@v1
-
   main:
     strategy:
       matrix:
@@ -33,7 +20,6 @@ jobs:
           - macos-latest
     runs-on: ${{ matrix.os }}
     name: Seq CI
-    needs: create_release
     steps:
       - uses: actions/checkout@v4
 
@@ -43,25 +29,15 @@ jobs:
 
       - name: Upload Release Asset
         if: contains(github.ref, 'tags/v') && startsWith(matrix.os, 'macos')
-        uses: actions/upload-release-asset@v1.0.2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: ./seq-darwin-arm64.tar.gz
-          asset_name: seq-darwin-arm64.tar.gz
-          asset_content_type: application/gzip
+          files: seq-darwin-arm64.tar.gz
 
       - name: Upload Release Asset
         if: contains(github.ref, 'tags/v') && startsWith(matrix.os, 'ubuntu')
-        uses: actions/upload-release-asset@v1.0.2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: ./seq-linux-x86_64.tar.gz
-          asset_name: seq-linux-x86_64.tar.gz
-          asset_content_type: application/gzip
+          files: seq-linux-x86_64.tar.gz
 
       - name: Upload Artifacts
         if: startsWith(matrix.os, 'macos')
