@@ -1,0 +1,17 @@
+import sys, bio
+
+def process(l):
+   w = 60
+   rc = ~bio.seq(''.join(l))
+   for i in range(0, len(rc), w):
+      print rc[i:i + w]
+
+l = list[str]()
+for line in sys.stdin:
+   if line[0] == '>':
+      process(l)
+      l.clear()
+      print line
+   else:
+      l.append(line)
+process(l)

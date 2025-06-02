@@ -14,9 +14,24 @@
 
 from sys import argv, stderr, exit
 from pickle import dump
-from util import K, BitSet
 from bio import FASTA, Locus
 import gzip
+
+K: Static[int] = 64
+
+@tuple
+class BitSet:
+    v: List[int]
+
+    def __new__(n: int) -> BitSet:
+        return ([0 for _ in range((n // 64) + 1)],)
+    def __getitem__(self, idx: int):
+        return (self.v[idx // 64] & (1 << (idx % 64))) != 0
+    def __setitem__(self, idx: int, b: bool):
+        if b:
+            self.v[idx // 64] |= (1 << (idx % 64))
+        else:
+            self.v[idx // 64] &= ~(1 << (idx % 64))
 
 if len(argv) != 3:
     print(f'usage: {argv[0]} <input_ref.fa> <output_prefix>', file=stderr)

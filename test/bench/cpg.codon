@@ -1,0 +1,68 @@
+import sys
+import time
+from bio import *
+
+def is_cpg(s):
+   return 1 if s == 'C' else (2 if s == 'G' else 0)
+
+def cpg(s):
+   for c in s:
+      i = is_cpg(c)
+      if i == 0: break
+      yield i
+
+m, M = 99999, 0
+def cpg_count(s):
+   global m, M
+   i = 0
+   count = 0
+   while i < len(s):
+      cc, l = 0, 0
+      for j in cpg(s[i:]):
+         cc |= j
+         l += 1
+      if cc == 3:
+         count += 1
+         m = min(m, l)
+         M = max(M, l)
+      i += l + 1
+   return count
+
+def naive():
+   f = FASTA(sys.argv[1], fai=False)
+   cnt = 0
+   for l in f:
+      cnt += cpg_count(str(l.seq))
+   print cnt, m, M
+
+def is_cpg(s, c, g) -> tuple[int, int]:
+   match s:
+      case 'C*': return is_cpg(s[1:], c + 1, g)
+      case 'G*': return is_cpg(s[1:], c, g + 1)
+      case _: return c, g
+
+def cpgs(s):
+   i = 0
+   while i < len(s):
+      c, g = is_cpg(s[i:], 0, 0)
+      if c and g:
+         yield c + g
+      i += c + g + 1
+
+cnt = 0
+def collect(c):
+   global cnt, m, M
+   cnt += 1
+   m = min(m, c)
+   M = max(M, c)
+
+def idiomatic():
+   FASTA(sys.argv[1], fai=False) |> seqs |> cpgs |> collect
+   print cnt, m, M
+
+with time.timing("naive"):
+   naive()
+
+m, M = 99999, 0
+with time.timing("idiomatic"):
+   idiomatic()

@@ -1,0 +1,69 @@
+import sys
+import time
+from bio import *
+
+def revcomp(c):
+   return ('A' if c == 'T' else \
+          ('C' if c == 'G' else \
+          ('G' if c == 'C' else \
+          ('T' if c == 'A' else c))))
+
+def process(k):
+   return len(k)
+
+def ksplit(s, k, step):
+   i = 0
+   while i + k <= len(s):
+      yield s[i:i + k]
+      i += step
+
+def sym(s, k):
+   return 1 if all(s[i] == revcomp(s[-i-1]) for i in range(k//2)) else 0
+
+def naive():
+   f = FASTA(sys.argv[1], fai=False)
+   total, t2, t3 = 0, 0, 0
+   k = 16
+   for l in f:
+      for s in ksplit(str(l.seq), k, 1):
+         total += process(s)
+         t2 += 1
+         t3 += sym(s, k)
+   print total, t2, t3
+
+t1 = 0
+def process(k):
+   global t1
+   t1 += len(k)
+   return k
+
+t2 = 0
+def count(k):
+   global t2
+   t2 += 1
+   return k
+
+t3 = 0
+def sym(k):
+   global t3
+   def is_sym(s) -> bool:
+      match s:
+         case 'A*T' | 'T*A' | 'C*G' | 'G*C' | 'N*N':
+            return is_sym(s[1:-1])
+         case '': return True
+         case _:  return False
+   t3 += 1 if is_sym(k) else 0
+
+def idiomatic():
+   (FASTA(sys.argv[1], fai=False)
+   |> seqs
+   |> split(16, 1)
+   |> process
+   |> count
+   |> sym)
+   print t1, t2, t3
+
+with time.timing("naive"):
+   naive()
+with time.timing("idiomatic"):
+   idiomatic()

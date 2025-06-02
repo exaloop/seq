@@ -11,11 +11,26 @@
 
 from sys import argv, stderr, exit
 from pickle import dump, load
-from util import K, BitSet
 from bio import FASTA, Locus, Kmer
 import gzip, itertools
 
 MAX_MISMATCHES = 3
+
+K: Static[int] = 64
+
+@tuple
+class BitSet:
+    v: List[int]
+
+    def __new__(n: int) -> BitSet:
+        return ([0 for _ in range((n // 64) + 1)],)
+    def __getitem__(self, idx: int):
+        return (self.v[idx // 64] & (1 << (idx % 64))) != 0
+    def __setitem__(self, idx: int, b: bool):
+        if b:
+            self.v[idx // 64] |= (1 << (idx % 64))
+        else:
+            self.v[idx // 64] &= ~(1 << (idx % 64))
 
 if len(argv) != 4:
     print(f'usage: {argv[0]} <input_ref.fa> <num_mismatches> <output_prefix>', file=stderr)
@@ -95,7 +110,6 @@ basename = f'{argv[3]}.hom_inexact.precompact'
 
 def process_signal(t):
     idx, signal1 = t
-    print 'signal: ', signal1
     d = {}
     d.resize(10000000)
     with gzip.open(basename + '.' + str(idx), 'wb0') as precompact:
