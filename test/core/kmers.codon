@@ -138,13 +138,13 @@ test_N()
 
 @test
 def test_base_counts():
-    assert s''.bases == (0,0,0,0,0)
-    assert s'A'.bases == (1,0,0,0,0)
-    assert s'C'.bases == (0,1,0,0,0)
-    assert s'G'.bases == (0,0,1,0,0)
-    assert s'T'.bases == (0,0,0,1,0)
-    assert s'N'.bases == (0,0,0,0,1)
-    assert s'AAGAGACTNTN'.bases == (4,1,2,2,2)
+    assert s''.bases == BaseCounts(0,0,0,0,0)
+    assert s'A'.bases == BaseCounts(1,0,0,0,0)
+    assert s'C'.bases == BaseCounts(0,1,0,0,0)
+    assert s'G'.bases == BaseCounts(0,0,1,0,0)
+    assert s'T'.bases == BaseCounts(0,0,0,1,0)
+    assert s'N'.bases == BaseCounts(0,0,0,0,1)
+    assert s'AAGAGACTNTN'.bases == BaseCounts(4,1,2,2,2)
     assert (s'A'.bases + s'G'.bases) - s'A'.bases == s'G'.bases
     assert s'A'.bases.add(T=True) - s'A'.bases == s'T'.bases
 test_base_counts()

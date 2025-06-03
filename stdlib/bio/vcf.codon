@@ -73,7 +73,7 @@ class _kstring_t:
     def __copy__(self) -> _kstring_t:
         p = Ptr[byte](self._l)
         str.memcpy(p, self._s, self._l)
-        return (self._l, self._l, p)
+        return _kstring_t(self._l, self._l, p)
 
 @tuple
 class _bcf_hrec_t:
@@ -234,7 +234,7 @@ class _bcf_dec_t:
     _indiv_dirty: i32
 
     def __new__() -> _bcf_dec_t:
-        return (i32(0), i32(0), i32(0), i32(0), i32(0), i32(0), i32(0), Ptr[i32](),
+        return _bcf_dec_t(i32(0), i32(0), i32(0), i32(0), i32(0), i32(0), i32(0), Ptr[i32](),
                 char_p(), char_p(), char_pp(), Ptr[_bcf_info_t](), Ptr[_bcf_fmt_t](),
                 Ptr[_variant_t](), i32(0), i32(-1), i32(0), i32(0))
 
@@ -345,9 +345,6 @@ class BCFHeaderMetaData:
     bcf_hdr: Ptr[_bcf_hdr_t]
     _type_code: int
 
-    def __new__(bcf_hdr: Ptr[_bcf_hdr_t], _type_code: int) -> BCFHeaderMetaData:
-        return (bcf_hdr, _type_code)
-
     @property
     def type_code(self):
         return self._type_code
@@ -372,9 +369,6 @@ class BCFHeaderMetaData:
 class BCFHeaderContigs:
     bcf_hdr: Ptr[_bcf_hdr_t]
 
-    def __new__(bcf_hdr: Ptr[_bcf_hdr_t]) -> BCFHeaderContigs:
-        return (bcf_hdr,)
-
     def __iter__(self):
         for i in range(int(self.bcf_hdr[0].n(int(BCF_DT_CTG)))):
             yield str.from_ptr(_bcf_hdr_id2name(self.bcf_hdr, i))
@@ -382,9 +376,6 @@ class BCFHeaderContigs:
 @tuple
 class BCFHeaderSamples:
     bcf_hdr: Ptr[_bcf_hdr_t]
-
-    def __new__(bcf_hdr: Ptr[_bcf_hdr_t]) -> BCFHeaderSamples:
-        return (bcf_hdr,)
 
     def __iter__(self):
         for i in range(int(self.bcf_hdr[0].n(int(BCF_DT_SAMPLE)))):
@@ -400,9 +391,6 @@ METADATA_TYPES = ('FILTER', 'INFO', 'FORMAT', 'CONTIG', 'STRUCTURED', 'GENERIC')
 class BCFHeaderRecord:
     bcf_hdr: Ptr[_bcf_hdr_t]
     bcf_hrec: Ptr[_bcf_hrec_t]
-
-    def __new__(bcf_hdr: Ptr[_bcf_hdr_t], bcf_hrec: Ptr[_bcf_hrec_t]) -> BCFHeaderRecord:
-        return (bcf_hdr, bcf_hrec)
 
     @property
     def hdr_type(self):
@@ -471,11 +459,8 @@ class BCFHeaderRecord:
 class BCFHeader:
     bcf_hdr: Ptr[_bcf_hdr_t]
 
-    def __new__(bcf_hdr: Ptr[_bcf_hdr_t]) -> BCFHeader:
-        return (bcf_hdr,)
-
     def __new__() -> BCFHeader:
-        return (Ptr[_bcf_hdr_t](),)
+        return BCFHeader(Ptr[_bcf_hdr_t]())
 
     @property
     def info(self):
@@ -508,9 +493,6 @@ class BCFMetadata:
     bcf_hdr: Ptr[_bcf_hdr_t]
     _type_code: int
     _id: int
-
-    def __new__(bcf_hdr: Ptr[_bcf_hdr_t], _type_code: int, _id: int) -> BCFMetadata:
-        return (bcf_hdr, _type_code, _id)
 
     @property
     def name(self):
@@ -706,9 +688,6 @@ class VCFRecordInfo:
     bcf_hdr: Ptr[_bcf_hdr_t]
     # mapping from info keys: values
 
-    def __new__(bcf1: Ptr[_bcf1_t], bcf_hdr: Ptr[_bcf_hdr_t]) -> VCFRecordInfo:
-        return (bcf1, bcf_hdr)
-
     def __iter__(self):
         hdr = self.bcf_hdr
         r = self.bcf1
@@ -865,9 +844,6 @@ class VCFRecordSample:
     bcf_hdr: Ptr[_bcf_hdr_t]
     index: int
 
-    def __new__(bcf1: Ptr[_bcf1_t], bcf_hdr: Ptr[_bcf_hdr_t], index: int) -> VCFRecordSample:
-        return (bcf1, bcf_hdr, index)
-
     @property
     def name(self):
         try_unpack(self.bcf1, BCF_UN_ALL)
@@ -928,9 +904,6 @@ class VCFRecordSamples:
     bcf1: Ptr[_bcf1_t]
     bcf_hdr: Ptr[_bcf_hdr_t]
 
-    def __new__(bcf1: Ptr[_bcf1_t], bcf_hdr: Ptr[_bcf_hdr_t]) -> VCFRecordSamples:
-        return (bcf1, bcf_hdr)
-
     def __len__(self):
         return int(self.bcf1[0].n_sample)
 
@@ -950,9 +923,6 @@ class VCFRecordSamples:
 class VCFRecordFormat:
     bcf1: Ptr[_bcf1_t]
     bcf_hdr: Ptr[_bcf_hdr_t]
-
-    def __new__(bcf1: Ptr[_bcf1_t], bcf_hdr: Ptr[_bcf_hdr_t]) -> VCFRecordFormat:
-        return (bcf1, bcf_hdr)
 
     def __len__(self):
         return int(self.bcf1[0].n_fmt)
@@ -979,9 +949,6 @@ class VCFRecordFilter:
     bcf1: Ptr[_bcf1_t]
     bcf_hdr: Ptr[_bcf_hdr_t]
 
-    def __new__(bcf1: Ptr[_bcf1_t], bcf_hdr: Ptr[_bcf_hdr_t]) -> VCFRecordFilter:
-        return (bcf1, bcf_hdr)
-
     def __iter__(self):
         for i in range(int(self.bcf1[0]._d._n_flt)):
             yield str.from_ptr(_bcf_hdr_int2id(self.bcf_hdr, BCF_DT_ID, self.bcf1[0]._d._flt[i]))
@@ -1002,9 +969,6 @@ class VCFRecordFilter:
 class VCFRecord:
     bcf1: Ptr[_bcf1_t]
     bcf_hdr: Ptr[_bcf_hdr_t]
-
-    def __new__(bcf1: Ptr[_bcf1_t], bcf_hdr: Ptr[_bcf_hdr_t]) -> VCFRecord:
-        return (bcf1, bcf_hdr)
 
     @property
     def info(self):

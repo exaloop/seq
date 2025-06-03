@@ -10,10 +10,10 @@ class pseq:
     ptr: cobj
 
     def __new__(p: cobj, n: int) -> pseq:
-        return (n, p)
+        return pseq(n, p)
 
     def __new__(s: str) -> pseq:
-        return (s.len, s.ptr)
+        return pseq(s.len, s.ptr)
 
     def __eq__(self, other: pseq):
         n = len(self)

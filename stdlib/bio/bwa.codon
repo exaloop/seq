@@ -173,7 +173,7 @@ class mem_alnreg_v:
     a: Ptr[mem_alnreg_t]
 
     def __new__() -> mem_alnreg_v:
-        return (0, 0, Ptr[mem_alnreg_t]())
+        return mem_alnreg_v(0, 0, Ptr[mem_alnreg_t]())
 
     def __getitem__(self, idx: int):
         if not (0 <= idx < self.n):
@@ -249,10 +249,10 @@ class BWA:
     p: Ptr[bwaidx_t]
 
     def __new__(hint: str) -> BWA:
-        return (mem_opt_init(), bwa_idx_load(hint.c_str(), _BWA_IDX_ALL))
+        return BWA(mem_opt_init(), bwa_idx_load(hint.c_str(), _BWA_IDX_ALL))
 
     def __new__(opt: cobj, hint: str) -> BWA:
-        return (opt, bwa_idx_load(hint.c_str(), _BWA_IDX_ALL))
+        return BWA(opt, bwa_idx_load(hint.c_str(), _BWA_IDX_ALL))
 
     def name(self, aln: mem_aln_t):
         return self.p[0].name(aln)

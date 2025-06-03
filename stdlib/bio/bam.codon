@@ -69,7 +69,7 @@ class _bam_core_t:
     _isize: i64
 
     def __new__() -> _bam_core_t:
-        return (i64(0), i32(0), u16(0), u8(0), u8(0), u16(0), u16(0), u32(0), i32(0), i32(0), i64(0), i64(0))
+        return _bam_core_t(i64(0), i32(0), u16(0), u8(0), u8(0), u16(0), u16(0), u32(0), i32(0), i32(0), i64(0), i64(0))
 
 # This type must be consistent with htslib:
 @tuple
@@ -83,12 +83,12 @@ class _bam1_t:
 
     def __new__() -> _bam1_t:
         BAM_USER_OWNS_STRUCT = 1  # see htslib's sam.h
-        return (_bam_core_t(), u64(0), Ptr[byte](), i32(0), u32(0), u32(BAM_USER_OWNS_STRUCT))
+        return _bam1_t(_bam_core_t(), u64(0), Ptr[byte](), i32(0), u32(0), u32(BAM_USER_OWNS_STRUCT))
 
     def __copy__(self) -> _bam1_t:
         data = Ptr[byte](int(self.l_data))
         str.memcpy(data, self.data, int(self.l_data))
-        return (self.core, self.id, data, self.l_data, u32(self.l_data), self.mem_policy)
+        return _bam1_t(self.core, self.id, data, self.l_data, u32(self.l_data), self.mem_policy)
 
     @property
     def tid(self):

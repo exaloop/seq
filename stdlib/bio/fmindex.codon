@@ -316,7 +316,7 @@ class FMDInterval:
     _size: int
 
     def __new__() -> FMDInterval:
-        return (0, 0, 0)
+        return FMDInterval(0, 0, 0)
 
     def __bool__(self):
         return self._size > 0
@@ -355,13 +355,13 @@ class SMEM:
     def __new__(interval: FMDInterval, start: int, stop: int) -> SMEM:
         if not (0 <= start <= stop):
             raise ValueError('invalid SMEM start and stop coordinates')
-        return (interval, u32(start), u32(stop))
+        return SMEM(interval, u32(start), u32(stop))
 
     def __new__(interval: FMDInterval) -> SMEM:
-        return (interval, u32(0), u32(0))
+        return SMEM(interval, u32(0), u32(0))
 
     def __new__() -> SMEM:
-        return (FMDInterval(), u32(0), u32(0))
+        return SMEM(FMDInterval(), u32(0), u32(0))
 
     def __len__(self):
         return int(self._stop - self._start)

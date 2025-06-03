@@ -44,7 +44,7 @@ class FASTQReader:
     copy: bool
 
     def __new__(path: str, validate: bool, gzip: bool, copy: bool) -> FASTQReader:
-        return (gzopen(path, "r").__raw__() if gzip else open(path, "r").__raw__(), validate, gzip, copy)
+        return FASTQReader(gzopen(path, "r").__raw__() if gzip else open(path, "r").__raw__(), validate, gzip, copy)
 
     @property
     def file(self):
@@ -86,7 +86,7 @@ class FASTQReader:
             elif x == 1:
                 read = self._preprocess_read(a)
                 if seqs:
-                    yield ("", read, "")
+                    yield FASTQRecord("", read, "")
             elif x == 2:
                 if self.validate and a[0] != "+":
                     raise ValueError(f"invalid separator on line {line + 1} of FASTQ")
@@ -96,7 +96,7 @@ class FASTQReader:
                 qual = self._preprocess_qual(a)
                 assert read.len >= 0
                 if not seqs:
-                    yield (name, read, qual)
+                    yield FASTQRecord(name, read, qual)
             else:
                 assert False
             line += 1

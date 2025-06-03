@@ -44,7 +44,7 @@ class _StackCell:
     _w: i32
 
     def __new__(k: int, x: int, w: int) -> _StackCell:
-        return (x, i32(k), i32(w))
+        return _StackCell(x, i32(k), i32(w))
 
     @property
     def k(self):

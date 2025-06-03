@@ -44,9 +44,9 @@ class seq:
     ptr: Ptr[byte]
 
     def __new__(s: str) -> seq:
-        return (s.len, s.ptr)
+        return seq(s.len, s.ptr)
     def __new__(p: Ptr[byte], l: int) -> seq:
-        return (l, p)
+        return seq(l, p)
     def __repr__(self):
         return f"s'{self.__str__()}'"
     def __len__(self):
@@ -72,7 +72,7 @@ class BaseCounts:
         '''
         Base counts of empty sequence (i.e. all zero)
         '''
-        return (0, 0, 0, 0, 0)
+        return BaseCounts(0, 0, 0, 0, 0)
 
     def __add__(self, other: BaseCounts):
         '''

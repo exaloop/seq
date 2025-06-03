@@ -78,7 +78,7 @@ class BEDReader:
     copy: bool
 
     def __new__(path: str, validate: bool, copy: bool) -> BEDReader:
-        return (gzopen(path, "r"), BEDReader.init_header(path), validate, copy)
+        return BEDReader(gzopen(path, "r"), BEDReader.init_header(path), validate, copy)
 
     @property
     def file(self):

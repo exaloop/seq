@@ -9,7 +9,7 @@ class Contig:
     _len: int
 
     def __new__(tid: int, name: str, len: int) -> Contig:
-        return (u32(tid), name, len)
+        return Contig(u32(tid), name, len)
 
     @property
     def tid(self):
@@ -64,7 +64,7 @@ class Locus:
         Constructs a `Locus` with specified contig ID and 0-based position.
         Negative positions indicate loci on the reverse strand.
         '''
-        return (u32(tid), u32(pos))
+        return Locus(u32(tid), u32(pos))
 
     def __lt__(self, other: Locus):
         return (self.tid, self.pos) < (other.tid, other.pos)
