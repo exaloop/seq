@@ -208,9 +208,9 @@ class IntervalTree[T]:
         n = contig.n
         st = start
         en = end
-        stack = __array__[_StackCell](64)
+        # TODO: use __array__ (now crashes randomly on macOS)
+        stack = [_StackCell(0, 0, 0) for _ in range(64)]
         t = 0
-
         k = contig.root_k
         stack[t] = _StackCell(k, (1 << k) - 1, 0)  # push the root; this is a top down traversal
         t += 1

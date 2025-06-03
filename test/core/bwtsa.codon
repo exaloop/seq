@@ -51,10 +51,10 @@ def test_fmindex(FMD: bool):
 
     # FASTA-based
     fmi = FMIndex('test/data/seqs.fasta', FMD=FMD)
-    with gzip.open('build/fmi.bin', 'wb') as jar:
+    with gzip.open('fmi.bin', 'wb') as jar:
         pickle.dump(fmi, jar)
 
-    with gzip.open('build/fmi.bin', 'rb') as jar:
+    with gzip.open('fmi.bin', 'rb') as jar:
         fmi = pickle.load(jar, FMIndex)
 
     assert fmi.sequence(1, 20, rid=0) == fmi.sequence(1, 20, name='chrA') == s'CCTCCCCGTTCGCTGGACC'
@@ -70,10 +70,10 @@ def test_fmindex(FMD: bool):
 def test_fmdindex():
     # FASTA-based
     fmi = FMDIndex('test/data/seqs.fasta')
-    with gzip.open('build/fmi.bin', 'wb') as jar:
+    with gzip.open('fmi.bin', 'wb') as jar:
         pickle.dump(fmi, jar)
 
-    with gzip.open('build/fmi.bin', 'rb') as jar:
+    with gzip.open('fmi.bin', 'rb') as jar:
         fmi = pickle.load(jar, FMDIndex)
 
     assert fmi.sequence(1, 20, rid=0) == fmi.sequence(1, 20, name='chrA') == s'CCTCCCCGTTCGCTGGACC'
@@ -87,10 +87,10 @@ def test_fmdindex():
 def test_smems[FM](fmi: FM, path: str):
     # FASTA-based
     ref = [rec for rec in FASTA(path)]
-    with gzip.open('build/fmi.bin', 'wb') as jar:
+    with gzip.open('fmi.bin', 'wb') as jar:
         pickle.dump(fmi, jar)
 
-    with gzip.open('build/fmi.bin', 'rb') as jar:
+    with gzip.open('fmi.bin', 'rb') as jar:
         fmi = pickle.load(jar, FM)
 
     q = s'ACCAAACCCAGCTACGCAAAATCTTAGCATACTCCTCAATTACCCACATAGGATGAATAA'

@@ -9,7 +9,7 @@ with timing('bed coverage (total)'):
 
     with timing('reading first BED file'):
         for record in BED(argv[1], copy=True, validate=False):
-            interval_tree.add(record.chrom, record.chrom_start, record.chrom_end)
+            interval_tree.add(record.chrom, record.chrom_start, record.chrom_end, None)
 
     with timing('indexing'):
         interval_tree.index()

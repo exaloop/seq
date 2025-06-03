@@ -4,7 +4,7 @@ import pickle
 @test
 def test_pickle[T](x: T):
     import gzip
-    path = 'build/testjar.bin'
+    path = 'testjar.bin'
     jar = gzip.open(path, 'wb')
     pickle.dump(x, jar)
     jar.close()

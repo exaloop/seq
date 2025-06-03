@@ -219,7 +219,10 @@ INSTANTIATE_TEST_SUITE_P(
     testing::Combine(
       testing::Values(
         "pipeline/canonical_opt.codon",
+  #ifndef __APPLE__
         "pipeline/interalign.codon",
+        // disable this on M1
+  #endif
         "pipeline/prefetch.codon",
         "pipeline/revcomp_opt.codon"
       ),

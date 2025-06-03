@@ -1,9 +1,9 @@
 [about]
 name = "Seq"
 description = "a high-performance language for bioinformatics"
-version = "0.11.3"
+version = "0.11.4"
 url = "https://seq-lang.org"
-supported = ">=0.15.4"
+supported = ">=0.18.2"
 
 [library]
 cpp = "build/libseq"
