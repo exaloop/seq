@@ -35,16 +35,16 @@ def naive():
       cnt += cpg_count(str(l.seq))
    print cnt, m, M
 
-def is_cpg(s, c, g) -> tuple[int, int]:
+def is_cpg_i(s, c, g) -> tuple[int, int]:
    match s:
-      case 'C*': return is_cpg(s[1:], c + 1, g)
-      case 'G*': return is_cpg(s[1:], c, g + 1)
+      case 'C*': return is_cpg_i(s[1:], c + 1, g)
+      case 'G*': return is_cpg_i(s[1:], c, g + 1)
       case _: return c, g
 
 def cpgs(s):
    i = 0
    while i < len(s):
-      c, g = is_cpg(s[i:], 0, 0)
+      c, g = is_cpg_i(s[i:], 0, 0)
       if c and g:
          yield c + g
       i += c + g + 1

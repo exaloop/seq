@@ -32,7 +32,7 @@ def naive():
    print total, t2, t3
 
 t1 = 0
-def process(k):
+def process_i(k):
    global t1
    t1 += len(k)
    return k
@@ -44,7 +44,7 @@ def count(k):
    return k
 
 t3 = 0
-def sym(k):
+def sym_i(k):
    global t3
    def is_sym(s) -> bool:
       match s:
@@ -58,9 +58,9 @@ def idiomatic():
    (FASTA(sys.argv[1], fai=False)
    |> seqs
    |> split(16, 1)
-   |> process
+   |> process_i
    |> count
-   |> sym)
+   |> sym_i)
    print t1, t2, t3
 
 with time.timing("naive"):

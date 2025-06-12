@@ -155,11 +155,11 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 
-target_include_directories(seq PRIVATE "${CODON_PATH}/include" ${LLVM_INCLUDE_DIRS} "${simde_SOURCE_DIR}")
+target_include_directories(seq PRIVATE "${CODON_PATH}/include" ${LLVM_INCLUDE_DIRS} "${simde_SOURCE_DIR}" "${CODON_PATH}/include/tser-1.0.0")
 target_link_directories(seq PRIVATE "${CODON_PATH}/lib/codon")
 target_link_libraries(seq PRIVATE codonrt codonc)
 
-target_include_directories(seq_static BEFORE PRIVATE "${htslib_SOURCE_DIR}" "${xz_SOURCE_DIR}/src/liblzma/api" "${CODON_PATH}/include" "${simde_SOURCE_DIR}")
+target_include_directories(seq_static BEFORE PRIVATE "${htslib_SOURCE_DIR}" "${xz_SOURCE_DIR}/src/liblzma/api" "${CODON_PATH}/include" "${simde_SOURCE_DIR}" "${CODON_PATH}/include/tser-1.0.0")
 set_target_properties(seq_static PROPERTIES
     POSITION_INDEPENDENT_CODE ON
     VISIBILITY_INLINES_HIDDEN ON)
@@ -178,7 +178,7 @@ if(IS_DIRECTORY "${googletest_SOURCE_DIR}")
     set_property(DIRECTORY ${googletest_SOURCE_DIR} PROPERTY EXCLUDE_FROM_ALL YES)
 endif()
 add_executable(seqtest test/main.cpp)
-target_include_directories(seqtest PRIVATE "${CODON_PATH}/include" ${LLVM_INCLUDE_DIRS})
+target_include_directories(seqtest PRIVATE "${CODON_PATH}/include" ${LLVM_INCLUDE_DIRS} "${CODON_PATH}/include/tser-1.0.0")
 target_link_directories(seqtest PRIVATE "${CODON_PATH}/lib/codon")
 target_link_libraries(seqtest codonrt codonc gtest_main)
 target_compile_definitions(seqtest PRIVATE TEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test")

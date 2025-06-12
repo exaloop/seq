@@ -23,9 +23,10 @@ class GeneralIndex:
     _hv: i32
 
     def __new__(chsum: int, info: int) -> GeneralIndex:
-        return (u64(chsum), u32(info), i32(0))
+        return GeneralIndex(u64(chsum), u32(info), i32(0))
     def __new__(hv: int, chsum: int, pos: int) -> GeneralIndex:
-        return (u64(chsum), u32(pos), i32(hv))
+        return GeneralIndex(u64(chsum), u32(pos), i32(hv))
+
     @property
     def chsum(self):
         return int(self._chsum)
@@ -52,7 +53,7 @@ class ReadIndexTab:
     _a: i32 = 0i32
     _b: i32 = 0i32
     def __new__(hv: int, a: int, b: int) -> ReadIndexTab:
-        return (i32(hv), i32(a), i32(b))
+        return ReadIndexTab(i32(hv), i32(a), i32(b))
     @property
     def hv(self):
         return int(self._hv)
@@ -70,7 +71,7 @@ class QGram:
     G: byte
     T: byte
     def __new__(A: int, C: int, G: int, T: int) -> QGram:
-        return (byte(A), byte(C), byte(G), byte(T))
+        return QGram(byte(A), byte(C), byte(G), byte(T))
 
 class ReadIndex:
     rlist: List[ReadIndexTab]
@@ -104,10 +105,10 @@ def partition(kmer):
 
 def count_qgrams(s, window):
     def bases2bytes(bases):
-        return (byte(bases.A), byte(bases.C), byte(bases.G), byte(bases.T))
+        return QGram(byte(bases.A), byte(bases.C), byte(bases.G), byte(bases.T))
     if len(s) < window:
         return []
-    counts = [(byte(0),byte(0),byte(0),byte(0)) for _ in range(len(s) - window + 1)]
+    counts = [QGram(byte(0),byte(0),byte(0),byte(0)) for _ in range(len(s) - window + 1)]
     bases = s[:window].bases
     counts[0] = bases2bytes(bases)
     for i in range(window, len(s)):

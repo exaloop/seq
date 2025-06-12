@@ -23,7 +23,7 @@ class BitSet:
     v: List[int]
 
     def __new__(n: int) -> BitSet:
-        return ([0 for _ in range((n // 64) + 1)],)
+        return BitSet([0 for _ in range((n // 64) + 1)],)
     def __getitem__(self, idx: int):
         return (self.v[idx // 64] & (1 << (idx % 64))) != 0
     def __setitem__(self, idx: int, b: bool):
@@ -50,7 +50,7 @@ with gzip.open(argv[3] + '.reps_bitsets', 'rb') as reps:
 
 class MapSegment[K]:
     locus: Locus
-    next: Optional[MapSegment[K]]
+    next: Optional[MapSegment[K]] = None
 
     @property
     def kmer(self):
