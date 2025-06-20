@@ -243,7 +243,9 @@ void PipelinePrefetchOptimization::handle(PipelineFlow *p) {
   util::CloneVisitor cv(M);
   for (auto it = p->begin(); it != p->end(); ++it) {
     if (auto *func = getStageFunc(*it)) {
-      if (!it->isGenerator() && util::hasAttribute(func, "std.bio.builtin.prefetch")) {
+      if (!it->isGenerator() &&
+          util::hasAttribute(
+              func, codon::ast::getMangledFunc("std.bio.builtin", "prefetch"))) {
         LOG_USER("applying prefetch on {}", func->getName());
 
         // transform prefetch'ing function
@@ -353,12 +355,15 @@ struct InterAlignTypes {
 };
 
 InterAlignTypes gatherInterAlignTypes(Module *M) {
-  return {M->getOrRealizeType("seq", {}, seqModule),
-          M->getOrRealizeType("CIGAR", {}, alignModule),
-          M->getOrRealizeType("Alignment", {}, alignModule),
-          M->getOrRealizeType("InterAlignParams", {}, alignModule),
-          M->getOrRealizeType("SeqPair", {}, alignModule),
-          M->getOrRealizeType("InterAlignYield", {}, alignModule)};
+  return {
+      M->getOrRealizeType(codon::ast::getMangledClass(seqModule, "seq"), {}),
+      M->getOrRealizeType(codon::ast::getMangledClass(alignModule, "CIGAR"), {}),
+      M->getOrRealizeType(codon::ast::getMangledClass(alignModule, "Alignment"), {}),
+      M->getOrRealizeType(codon::ast::getMangledClass(alignModule, "InterAlignParams"),
+                          {}),
+      M->getOrRealizeType(codon::ast::getMangledClass(alignModule, "SeqPair"), {}),
+      M->getOrRealizeType(codon::ast::getMangledClass(alignModule, "InterAlignYield"),
+                          {})};
 }
 
 bool isConstOrGlobal(const Value *x) {
@@ -507,7 +512,8 @@ void PipelineInterAlignOptimization::handle(PipelineFlow *p) {
   for (auto it = p->begin(); it != p->end(); ++it) {
     if (auto *func = getStageFunc(*it)) {
       if (!it->isGenerator() &&
-          util::hasAttribute(func, "std.bio.builtin.inter_align") &&
+          util::hasAttribute(
+              func, codon::ast::getMangledFunc("std.bio.builtin", "inter_align")) &&
           util::getReturnType(func)->is(M->getNoneType())) {
         LOG_USER("applying inter_align on {}", func->getName());
 
