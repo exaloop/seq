@@ -18,9 +18,9 @@ include(${CPM_DOWNLOAD_LOCATION})
 
 CPMAddPackage(
     NAME xz
-    GITHUB_REPOSITORY "xz-mirror/xz"
-    VERSION 5.2.5
-    GIT_TAG e7da44d5151e21f153925781ad29334ae0786101
+    GITHUB_REPOSITORY "tukaani-project/xz"
+    VERSION 5.8.1
+    GIT_TAG v5.8.1
     EXCLUDE_FROM_ALL YES
     OPTIONS "BUILD_SHARED_LIBS OFF"
             "CMAKE_POSITION_INDEPENDENT_CODE ON")
@@ -31,8 +31,8 @@ endif()
 
 CPMAddPackage(
     NAME htslib
-    VERSION 1.13
-    URL "https://github.com/samtools/htslib/releases/download/1.13/htslib-1.13.tar.bz2"
+    VERSION 1.22.1
+    URL "https://github.com/samtools/htslib/releases/download/1.22.1/htslib-1.22.1.tar.bz2"
     DOWNLOAD_ONLY YES)
 if(htslib_ADDED)
     configure_file(
@@ -101,8 +101,8 @@ endif()
 
 CPMAddPackage(
     NAME simde
-    URL "https://github.com/simd-everywhere/simde/archive/refs/tags/v0.7.2.tar.gz"
-    VERSION 0.7.2
+    URL "https://github.com/simd-everywhere/simde/archive/refs/tags/v0.8.2.tar.gz"
+    VERSION 0.8.2
     DOWNLOAD_ONLY YES)
 if(simde_ADDED)
     add_library(simde INTERFACE)

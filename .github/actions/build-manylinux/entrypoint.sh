@@ -1,6 +1,14 @@
 #!/bin/sh -l
 set -e
 
+export LLVM_VERSION="20.1.7"
+export CODON_VERSION="0.19.1"
+export ARCH="$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m)"
+
+WORKSPACE="${1:-/github/workspace}"
+echo "Workspace: ${WORKSPACE}"
+cd "$WORKSPACE"
+
 # setup
 TEST=1
 if [ -n "$(command -v yum)" ]
@@ -18,9 +26,9 @@ fi
 
 mkdir $HOME/.codon
 cd $HOME/.codon
-curl -L https://github.com/exaloop/codon/releases/download/v0.18.2/codon-$(uname -s | awk '{print tolower($0)}')-$(uname -m).tar.gz | tar zxvf - --strip-components=1
+curl -L https://github.com/exaloop/codon/releases/download/v${CODON_VERSION}/codon-${ARCH}.tar.gz | tar zxvf - --strip-components=1
 cd /opt
-curl -L https://github.com/exaloop/llvm-project/releases/download/codon-17.0.6/llvm-codon-17.0.6-$(uname -s | awk '{print tolower($0)}')-$(uname -m).tar.gz | tar zxvf -
+curl -L https://github.com/exaloop/llvm-project/releases/download/codon-${LLVM_VERSION}/llvm-codon-${LLVM_VERSION}-${ARCH}.tar.gz | tar zxvf -
 
 cd $1
 cmake -S . -B build \
