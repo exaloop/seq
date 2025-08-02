@@ -12,45 +12,70 @@ on:
       - develop
 
 jobs:
-  main:
+  create_release:
+    name: GitHub Release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    permissions:
+      contents: write
+    steps:
+      - name: Create Release
+        if: contains(github.ref, 'tags/v')
+        id: create_release
+        uses: ncipollo/release-action@v1
+
+  build:
     strategy:
       matrix:
-        os:
-          - ubuntu-22.04
-          - macos-latest
+        include:
+          - os: ubuntu-latest
+            arch: linux-x86_64
+          - os: ubuntu-latest
+            arch: manylinux2014-x86_64
+          - os: ubuntu-24.04-arm
+            arch: linux-aarch64
+          - os: ubuntu-24.04-arm
+            arch: manylinux2014-aarch64
+          - os: macos-13
+            arch: darwin-x86_64
+          - os: macos-14
+            arch: darwin-arm64
     runs-on: ${{ matrix.os }}
-    name: Seq CI
+    name: Build Seq
+    needs: create_release
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build
-        run: |
-          sudo bash .github/actions/build-manylinux/entrypoint.sh $(pwd)
-
-      - name: Upload Release Asset
-        if: contains(github.ref, 'tags/v') && startsWith(matrix.os, 'macos')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: seq-darwin-arm64.tar.gz
-
-      - name: Upload Release Asset
-        if: contains(github.ref, 'tags/v') && startsWith(matrix.os, 'ubuntu')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: seq-linux-x86_64.tar.gz
-
-      - name: Upload Artifacts
-        if: startsWith(matrix.os, 'macos')
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.os }}-arm64
-          path: seq-darwin-arm64.tar.gz
-
-      - name: Upload Artifacts
+      - name: Build (Ubuntu)
         if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          (cd .github/build-linux && docker build -t local -f Dockerfile.${{ matrix.arch }} .)
+          docker run -v $(pwd):/github/workspace local /github/workspace ${{ matrix.arch }} yes 0.19.1
+
+      - name: Build (macOS)
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          sudo mkdir -p /opt/llvm-codon
+          sudo chown -R $(whoami) /opt/llvm-codon
+          curl -L https://github.com/exaloop/llvm-project/releases/download/codon-20.1.7/llvm-codon-20.1.7-${{ matrix.arch }}.tar.bz2 | tar jxf - -C /opt
+          bash .github/build-linux/entrypoint.sh ${{ github.workspace }} ${{ matrix.arch }} yes 0.19.1
+
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os }}-x86_64
-          path: seq-linux-x86_64.tar.gz
+          name: seq-${{ matrix.arch }}.tar.gz
+          path: seq-${{ matrix.arch }}.tar.gz
+
+      - name: Upload Release Asset
+        if: contains(github.ref, 'tags/v')
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: ./seq-${{ matrix.arch }}.tar.gz
+          asset_name: seq-${{ matrix.arch }}.tar.gz
+          asset_content_type: application/gzip

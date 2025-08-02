@@ -2,9 +2,11 @@
 #include "sw/ksw2.h"
 #include <cstdlib>
 
-#ifdef __ARM_NEON__
+#if defined(__ARM_NEON__)
 #define __SSE2__
 #define __SSE4_1__
+#elif defined(__aarch64__)
+#define __SSE2__ // SIMDE emulation
 #endif
 
 /*
@@ -98,6 +100,7 @@ SEQ_FUNC void seq_align(seq_t query, seq_t target, int8_t *mat, int8_t gapo,
   ALIGN_RELEASE();
   *out = {{ez.cigar, ez.n_cigar}, flags & KSW_EZ_EXTZ_ONLY ? ez.max : ez.score};
 #else
+  fprintf(stderr, "SSE2 or similar not supported; aborting...");
   abort();
 #endif
 }
@@ -115,6 +118,7 @@ SEQ_FUNC void seq_align_default(seq_t query, seq_t target, Alignment *out) {
   ALIGN_RELEASE();
   *out = {{cigar, n_cigar}, score};
 #else
+  fprintf(stderr, "SSE2 or similar not supported; aborting...");
   abort();
 #endif
 }
@@ -131,6 +135,7 @@ SEQ_FUNC void seq_align_dual(seq_t query, seq_t target, int8_t *mat, int8_t gapo
   ALIGN_RELEASE();
   *out = {{ez.cigar, ez.n_cigar}, flags & KSW_EZ_EXTZ_ONLY ? ez.max : ez.score};
 #else
+  fprintf(stderr, "SSE2 or similar not supported; aborting...");
   abort();
 #endif
 }
@@ -146,6 +151,7 @@ SEQ_FUNC void seq_align_splice(seq_t query, seq_t target, int8_t *mat, int8_t ga
   ALIGN_RELEASE();
   *out = {{ez.cigar, ez.n_cigar}, flags & KSW_EZ_EXTZ_ONLY ? ez.max : ez.score};
 #else
+  fprintf(stderr, "SSE2 or similar not supported; aborting...");
   abort();
 #endif
 }
@@ -163,6 +169,7 @@ SEQ_FUNC void seq_align_global(seq_t query, seq_t target, int8_t *mat, int8_t ga
   ALIGN_RELEASE();
   *out = {{backtrace ? cigar : nullptr, backtrace ? n_cigar : 0}, score};
 #else
+  fprintf(stderr, "SSE2 or similar not supported; aborting...");
   abort();
 #endif
 }
@@ -178,6 +185,7 @@ SEQ_FUNC void seq_palign(seq_t query, seq_t target, int8_t *mat, int8_t gapo,
   ALIGN_RELEASE();
   *out = {{ez.cigar, ez.n_cigar}, flags & KSW_EZ_EXTZ_ONLY ? ez.max : ez.score};
 #else
+  fprintf(stderr, "SSE2 or similar not supported; aborting...");
   abort();
 #endif
 }
@@ -220,6 +228,7 @@ SEQ_FUNC void seq_palign_default(seq_t query, seq_t target, Alignment *out) {
   ALIGN_RELEASE();
   *out = {{ez.cigar, ez.n_cigar}, ez.score};
 #else
+  fprintf(stderr, "SSE2 or similar not supported; aborting...");
   abort();
 #endif
 }
@@ -236,6 +245,7 @@ SEQ_FUNC void seq_palign_dual(seq_t query, seq_t target, int8_t *mat, int8_t gap
   ALIGN_RELEASE();
   *out = {{ez.cigar, ez.n_cigar}, flags & KSW_EZ_EXTZ_ONLY ? ez.max : ez.score};
 #else
+  fprintf(stderr, "SSE2 or similar not supported; aborting...");
   abort();
 #endif
 }
@@ -252,6 +262,7 @@ SEQ_FUNC void seq_palign_global(seq_t query, seq_t target, int8_t *mat, int8_t g
   ALIGN_RELEASE();
   *out = {{cigar, n_cigar}, score};
 #else
+  fprintf(stderr, "SSE2 or similar not supported; aborting...");
   abort();
 #endif
 }

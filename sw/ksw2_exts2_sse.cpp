@@ -2,9 +2,11 @@
 #include <cassert>
 #include <cstring>
 
-#ifdef __ARM_NEON__
+#if defined(__ARM_NEON__)
 #define __SSE2__
 #define __SSE4_1__
+#elif defined(__aarch64__)
+#define __SSE2__  // SIMDE emulation
 #endif
 
 #define SIMDE_ENABLE_NATIVE_ALIASES

@@ -88,10 +88,17 @@ if(htslib_ADDED)
         "${htslib_SOURCE_DIR}/htscodecs/htscodecs/fqzcomp_qual.c"
         "${htslib_SOURCE_DIR}/htscodecs/htscodecs/htscodecs.c"
         "${htslib_SOURCE_DIR}/htscodecs/htscodecs/pack.c"
+        "${htslib_SOURCE_DIR}/htscodecs/htscodecs/rANS_static32x16pr.c"
+        "${htslib_SOURCE_DIR}/htscodecs/htscodecs/rANS_static32x16pr_avx2.c"
+        "${htslib_SOURCE_DIR}/htscodecs/htscodecs/rANS_static32x16pr_avx512.c"
+        "${htslib_SOURCE_DIR}/htscodecs/htscodecs/rANS_static32x16pr_neon.c"
+        "${htslib_SOURCE_DIR}/htscodecs/htscodecs/rANS_static32x16pr_sse4.c"
         "${htslib_SOURCE_DIR}/htscodecs/htscodecs/rANS_static4x16pr.c"
         "${htslib_SOURCE_DIR}/htscodecs/htscodecs/rANS_static.c"
         "${htslib_SOURCE_DIR}/htscodecs/htscodecs/rle.c"
-        "${htslib_SOURCE_DIR}/htscodecs/htscodecs/tokenise_name3.c")
+        "${htslib_SOURCE_DIR}/htscodecs/htscodecs/tokenise_name3.c"
+        "${htslib_SOURCE_DIR}/htscodecs/htscodecs/utils.c"
+        )
     add_library(htslib STATIC ${HTSLIB_FILES})
     target_include_directories(htslib BEFORE PRIVATE "${htslib_SOURCE_DIR}" "${xz_SOURCE_DIR}/src/liblzma/api")
     set_target_properties(htslib PROPERTIES
@@ -101,9 +108,9 @@ endif()
 
 CPMAddPackage(
     NAME simde
-    URL "https://github.com/simd-everywhere/simde/archive/refs/tags/v0.8.2.tar.gz"
-    VERSION 0.8.2
-    DOWNLOAD_ONLY YES)
+    GITHUB_REPOSITORY "simd-everywhere/simde"
+    VERSION 0.8.4
+    GIT_TAG v0.8.4-rc1)
 if(simde_ADDED)
     add_library(simde INTERFACE)
     target_include_directories(simde INTERFACE simde/)
@@ -143,10 +150,6 @@ else()
       -Wl,--whole-archive $<TARGET_FILE:htslib> -Wl,--no-whole-archive)
 endif()
 
-find_package(LLVM REQUIRED CONFIG)
-separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
-add_definitions(${LLVM_DEFINITIONS_LIST})
-
 if(NOT CODON_PATH)
     set(CODON_PATH "$ENV{HOME}/.codon")
 endif()
@@ -155,7 +158,7 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 
-target_include_directories(seq PRIVATE "${CODON_PATH}/include" ${LLVM_INCLUDE_DIRS} "${simde_SOURCE_DIR}" "${CODON_PATH}/include/tser-1.0.0")
+target_include_directories(seq PRIVATE "${CODON_PATH}/include" "${simde_SOURCE_DIR}" "${CODON_PATH}/include/tser-1.0.0")
 target_link_directories(seq PRIVATE "${CODON_PATH}/lib/codon")
 target_link_libraries(seq PRIVATE codonrt codonc)
 
@@ -168,7 +171,7 @@ set_target_properties(seq_static PROPERTIES
 # Download and unpack googletest at configure time
 include(FetchContent)
 FetchContent_Declare(googletest
-  URL https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip)
+  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip)
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 option(INSTALL_GTEST "Enable installation of googletest." OFF)
@@ -178,7 +181,7 @@ if(IS_DIRECTORY "${googletest_SOURCE_DIR}")
     set_property(DIRECTORY ${googletest_SOURCE_DIR} PROPERTY EXCLUDE_FROM_ALL YES)
 endif()
 add_executable(seqtest test/main.cpp)
-target_include_directories(seqtest PRIVATE "${CODON_PATH}/include" ${LLVM_INCLUDE_DIRS} "${CODON_PATH}/include/tser-1.0.0")
+target_include_directories(seqtest PRIVATE "${CODON_PATH}/include" "${CODON_PATH}/include/tser-1.0.0")
 target_link_directories(seqtest PRIVATE "${CODON_PATH}/lib/codon")
 target_link_libraries(seqtest codonrt codonc gtest_main)
 target_compile_definitions(seqtest PRIVATE TEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test")
