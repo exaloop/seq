@@ -45,7 +45,9 @@ Afterwards, you can use Seq with `-plugin seq`; for example:
 codon run -plugin seq test.codon
 ```
 
-> **Note:** The default aarch64 Linux binaries use NEON emulation. Please recompile to enable the full performance.
+> **Note:** The default aarch64 Linux binaries use NEON emulation. Other builds might also be suboptimal (e.g., using SSE2 instead of SSE4 or AVX).
+> You should compile Seq locally to ensure the optimal alignment performance on your hardware.
+>
 > Please consult [our build file](.github/build-linux/entrypoint.sh) for the build instructions.
 
 ## Documentation
