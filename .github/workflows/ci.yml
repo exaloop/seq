@@ -53,7 +53,7 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu')
         run: |
           (cd .github/build-linux && docker build -t local -f Dockerfile.${{ matrix.arch }} .)
-          docker run -v $(pwd):/github/workspace local /github/workspace ${{ matrix.arch }} yes 0.19.1
+          docker run -v $(pwd):/github/workspace local /github/workspace ${{ matrix.arch }} yes 0.19.2
 
       - name: Build (macOS)
         if: startsWith(matrix.os, 'macos')
@@ -61,7 +61,7 @@ jobs:
           sudo mkdir -p /opt/llvm-codon
           sudo chown -R $(whoami) /opt/llvm-codon
           curl -L https://github.com/exaloop/llvm-project/releases/download/codon-20.1.7/llvm-codon-20.1.7-${{ matrix.arch }}.tar.bz2 | tar jxf - -C /opt
-          bash .github/build-linux/entrypoint.sh ${{ github.workspace }} ${{ matrix.arch }} yes 0.19.1
+          bash .github/build-linux/entrypoint.sh ${{ github.workspace }} ${{ matrix.arch }} yes 0.19.2
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4

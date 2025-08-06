@@ -8,7 +8,7 @@ export ARCHDEFAULT="$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m)"
 ARCH=${2:-$ARCHDEFAULT}
 
 TEST=${3:-no}
-CODON_VERSION=${4:-0.19.1}
+CODON_VERSION=${4:-0.19.2}
 
 echo "Workspace: ${WORKSPACE}; arch: ${ARCH}"
 cd "$WORKSPACE"
