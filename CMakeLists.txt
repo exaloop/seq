@@ -66,6 +66,7 @@ if(htslib_ADDED)
         "${htslib_SOURCE_DIR}/regidx.c"
         "${htslib_SOURCE_DIR}/region.c"
         "${htslib_SOURCE_DIR}/sam.c"
+        "${htslib_SOURCE_DIR}/sam_mods.c"
         "${htslib_SOURCE_DIR}/synced_bcf_reader.c"
         "${htslib_SOURCE_DIR}/vcf_sweep.c"
         "${htslib_SOURCE_DIR}/tbx.c"
